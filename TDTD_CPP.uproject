@@ -1,0 +1,106 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "4.27",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "TDTD_CPP",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"ProceduralMeshComponent"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "ToggleSidebar",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/e6abd0bfd1b44327b64e36d9dc4ecaed"
+		},
+		{
+			"Name": "Restart",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/1bf89025ddf246e3af3c196d0426e0d3"
+		},
+		{
+			"Name": "CodeView",
+			"Enabled": true
+		},
+		{
+			"Name": "DetectivePlugin",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/44c95a9d27754a3cbf664b334ccc5b19"
+		},
+		{
+			"Name": "Debug",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/739ccab666f245e08397bcbf668063ed"
+		},
+		{
+			"Name": "ElectronicNodes",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/5cb2a394d0c04e73891762be4cbd7216"
+		},
+		{
+			"Name": "ConsoleEnhanced",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/86123c85a4474d609c5cef8a7fc5786b"
+		},
+		{
+			"Name": "FastNoiseGenerator",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/527737f42da544e9abf8607a40495fbd"
+		},
+		{
+			"Name": "GraphFormatter",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/297159d6d3f4425b9c095b18a811a401"
+		},
+		{
+			"Name": "GraphPrinter",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/466303b6cd724968b3ee0a1a1b623f4b"
+		},
+		{
+			"Name": "SMSystem",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/916643d0c665469594233cb0487e6d3d"
+		},
+		{
+			"Name": "LogViewer",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/4853cdc0a6a54d7b9c0712cbe72f6b68"
+		},
+		{
+			"Name": "ParticlePath",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/81de27b54983497d89940d914d399025"
+		},
+		{
+			"Name": "ParticleText",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/0c2d7c278eb645d5b8c3be41e2bc859e"
+		},
+		{
+			"Name": "SVGTools",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/1a4dab926a7f48f9acd98f1562addf8b"
+		},
+		{
+			"Name": "UINavigation",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/4601ff4d12fc4ed1a7418e1585374a48"
+		},
+		{
+			"Name": "VarDump",
+			"Enabled": true
+		}
+	]
+}
