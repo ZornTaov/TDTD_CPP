@@ -65,7 +65,7 @@ void AGridWorldController::OnConstruction(const FTransform& Transform)
 	InitInstance();
 }
 
-void AGridWorldController::SetupTileEvents() const
+void AGridWorldController::SetupTileEvents()
 {
 	for (int z = 0; z < World->Depth; ++z)
 	{
@@ -140,7 +140,7 @@ void AGridWorldController::ClearInstances(TArray<UInstancedStaticMeshComponent*>
 	}
 }
 
-void AGridWorldController::OnTileTypeChanged(FTile TileData, ETileType InType)
+void AGridWorldController::OnTileTypeChanged(FTile* TileData, const ETileType& InType)
 {
 	//VARDUMP(TileData.GetType(), VARDUMP(TileData.GetIndexPos()));
 	const UEnum* TileInfo = FindObject<UEnum>(ANY_PACKAGE, TEXT("ETileType"));

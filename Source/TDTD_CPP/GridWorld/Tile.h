@@ -55,7 +55,7 @@ public:
 	FRotator GetRot() const;
 	void SetRot(const FRotator& InRot);
 	
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUpdateTile, FTile*, Tile, ETileType, InType);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUpdateTile, FTile*, Tile, const ETileType&, InType);
 	FUpdateTile Del;
 };
 
