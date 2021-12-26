@@ -5,13 +5,13 @@
 #include "GridWorldLayer.h"
 #include "VarDump.h"
 
-void UGridWorld::Init()
+void UGridWorld::Init(const ETileType InitType)
 {
 	Layers.SetNum(Depth);
 	for (int i = 0; i < Depth; ++i)
 	{
 		if(Layers[i].GetDepth() == -1 || Layers[i].GetDepth() != i)
-			Layers[i] = FGridWorldLayer(this, i);
+			Layers[i] = FGridWorldLayer(this, i, InitType);
 	}
 }
 
@@ -41,17 +41,5 @@ FTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
 	{
 		return Layer->GetTileAt(X, Y);
 	}
-}
-
-FTile* UGridWorld::SetTileType(const FVector Pos, const ETileType NewType)
-{
-	return SetTileType(Pos.X, Pos.Y, Pos.Z, NewType);
-}
-
-FTile* UGridWorld::SetTileType(const int X, const int Y, const int Z, ETileType NewType)
-{
-	FTile* Tile = GetTileAt(X, Y, Z);
-	Tile->SetType(NewType);
-	return Tile;
 }
 

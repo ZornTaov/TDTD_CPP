@@ -9,10 +9,14 @@ ETileType FTile::GetType() const
 	return Type;
 }
 
-void FTile::SetType(const ETileType& InType)
+void FTile::SetType(const ETileType InType)
 {
 	this->Type = InType;
-	Del.Broadcast(this, InType);
+}
+
+FTransform& FTile::GetPos()
+{
+	return Pos;
 }
 
 FVector FTile::GetWorldPos() const
@@ -47,6 +51,16 @@ void FTile::SetRot(const FRotator& InRot)
 	this->Pos.SetRotation(InRot.Quaternion());
 }
 
+int FTile::GetInstanceIndex() const
+{
+	return InstanceIndex;
+}
+
+void FTile::SetInstanceIndex(const int NewIndex)
+{
+	this->InstanceIndex = NewIndex;
+}
+
 FTile::FTile(UGridWorld* Gw, const int X, const int Y, const int Z)
 {
 	this->Pos.SetLocation(FVector(X,Y,Z));
@@ -55,9 +69,10 @@ FTile::FTile(UGridWorld* Gw, const int X, const int Y, const int Z)
 		Gw->TileCount++;
 }
 
-FTile* FTile::Make(UGridWorld* Gw, const int X, const int Y, const int Z)
+FTile* FTile::Make(UGridWorld* Gw, const int X, const int Y, const int Z, const ETileType InitType)
 {
 	FTile* t = new FTile(Gw, X, Y, Z);
+	t->SetType(InitType);
 	return t;
 }
 

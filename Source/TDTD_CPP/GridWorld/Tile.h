@@ -10,7 +10,7 @@
 class UGridWorld;
 
 UENUM(BlueprintType)
-enum class ETileType : uint8 { Empty, Ground, Floor };
+enum class ETileType : uint8 { Empty, Ground, Floor, Ramp };
 
 USTRUCT(BlueprintType)
 struct FTileStruct : public FTableRowBase
@@ -18,7 +18,7 @@ struct FTileStruct : public FTableRowBase
 	GENERATED_BODY()
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	ETileType Type = ETileType::Empty;
+	ETileType Type = ETileType::Ground;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UStaticMesh* Mesh = nullptr;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -41,21 +41,22 @@ protected:
 	UGridWorld* World = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FTransform Pos = FTransform::Identity;
-	
 public:
+	FTransform& GetPos();
+	__declspec(property(get = GetPos)) FTransform FPos;
 	int InstanceIndex = -1;
+	__declspec(property(get = GetInstanceIndex, put = SetInstanceIndex)) int FInstanceIndex;
 	FTile() = default;
 	FTile(UGridWorld* Gw, int X, int Y, int Z);
-	static FTile* Make(UGridWorld* Gw, int X, int Y, int Z);
+	static FTile* Make(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
 	ETileType GetType() const;
-	void SetType(const ETileType& InType);
+	void SetType(ETileType InType);
 	FVector GetWorldPos() const;
 	FVector GetIndexPos() const;
 	void SetPos(const FVector& InPos);
 	FRotator GetRot() const;
 	void SetRot(const FRotator& InRot);
-	
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUpdateTile, FTile*, Tile, const ETileType&, InType);
-	FUpdateTile Del;
+	int GetInstanceIndex() const;
+	void SetInstanceIndex(int NewIndex);
 };
 

@@ -59,26 +59,9 @@ void AGridWorldController::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 	InitComponents(FloorComponents, FloorsRootComponent, FloorTileDataTable);
 	//InitComponents(WallComponents, WallsRootComponent, WallTileDataTable);
-	World->Init();
-	SetupTileEvents();
+	World->Init(ETileType::Ground);
 	ClearAllInstances();
 	InitInstance();
-}
-
-void AGridWorldController::SetupTileEvents()
-{
-	for (int z = 0; z < World->Depth; ++z)
-	{
-		for (int x = 0; x < World->Size().X; ++x)
-		{
-			for (int y = 0; y < World->Size().Y; ++y)
-			{
-				FTile* Tile_Data = World->GetTileAt(x, y, z);
-				//Tile_Data->Del.AddLambda([this](FTile* Tile){OnTileTypeChanged(*Tile);});
-				Tile_Data->Del.AddDynamic(this, &AGridWorldController::OnTileTypeChanged);
-			}
-		}
-	}
 }
 
 void AGridWorldController::InitInstance()
@@ -114,12 +97,15 @@ void AGridWorldController::InitComponents(TArray<UInstancedStaticMeshComponent*>
 	{
 		TArray<FTileStruct*> OutRowArray;
 		Data->GetAllRows<FTileStruct>(TEXT("GridWorldController#InitComponents"),OutRowArray);
-		Components.SetNumUninitialized(OutRowArray.Num());
+		Components.SetNum(ParentComp->GetNumChildrenComponents());
 		for (int i = 0; i < ParentComp->GetNumChildrenComponents(); ++i)
 		{
 			UInstancedStaticMeshComponent* Child = Cast<UInstancedStaticMeshComponent>(ParentComp->GetChildComponent(i));
-			Child->SetStaticMesh(OutRowArray[i]->Mesh);
-			Components[i] = Child;
+			if(IsValid(Child))
+			{
+				Child->SetStaticMesh(OutRowArray[i]->Mesh);
+				Components[i] = Child;
+			}
 		}
 	}
 }
@@ -136,28 +122,33 @@ void AGridWorldController::ClearInstances(TArray<UInstancedStaticMeshComponent*>
 	for (UInstancedStaticMeshComponent*& Component : Components)
 	{
 		if(Component == nullptr) continue;
-		Component->ClearInstances();
+		if(IsValid(Component))
+			Component->ClearInstances();
 	}
 }
 
-void AGridWorldController::OnTileTypeChanged(FTile* TileData, const ETileType& InType)
+void AGridWorldController::OnTileTypeChanged(FTile& TileDataRef, ETileType NewType) const
 {
-	//VARDUMP(TileData.GetType(), VARDUMP(TileData.GetIndexPos()));
-	const UEnum* TileInfo = FindObject<UEnum>(ANY_PACKAGE, TEXT("ETileType"));
-	if (!ensure(TileInfo != nullptr))
+	FTile* TileData = &TileDataRef;
+	ETileType OldType = TileData->GetType();
+	if (!FloorComponents.IsValidIndex(static_cast<uint8>(OldType)))
 	{
-		UE_LOG(LogActor, Warning, TEXT("Could not ETileType!"));
+		UE_LOG(LogActor, Error, TEXT("Index %d not found for %s, are we missing a component?"), TileData->GetInstanceIndex(), OldType)
+		return;
+	} 
+	if(FloorComponents[static_cast<uint8>(OldType)]->GetNumRenderInstances() <= TileData->GetInstanceIndex())
+		FloorComponents[static_cast<uint8>(OldType)]->RemoveInstance(TileData->InstanceIndex);
+	
+	if (!FloorComponents.IsValidIndex(static_cast<uint8>(NewType)))
+	{
+		UE_LOG(LogActor, Error, TEXT("Index %d not found for %s, are we missing a component?"), TileData->GetInstanceIndex(), NewType)
 		return;
 	}
-	/*const FTileStruct* TInfo = DataTable->FindRow<FTileStruct>(FName(TileInfo->GetDisplayNameTextByValue(static_cast<uint8>(TileData.GetType())).ToString()), TEXT("OnTileTypeChanged"));
-	if (!ensure(TInfo != nullptr))
-	{
-		UE_LOG(LogActor, Warning, TEXT("Could not find Datatable row!"));
-		return;
-	}*/
+	const int Id = FloorComponents[static_cast<uint8>(NewType)]->AddInstance(FTransform(TileData->GetRot().Quaternion(), TileData->GetWorldPos()));
+	TileData->SetInstanceIndex(Id);
 }
 
-FTile* AGridWorldController::UpdateTile(const FVector Pos, const ETileType NewType) const
+FTile* AGridWorldController::UpdateTile(const FVector Pos, const ETileType& NewType) const
 {
 	return UpdateTile(Pos.X, Pos.Y, Pos.Z, NewType);
 }
@@ -165,13 +156,13 @@ FTile* AGridWorldController::UpdateTile(const FVector Pos, const ETileType NewTy
 FTile* AGridWorldController::UpdateTile(const int X, const int Y, const int Z, const ETileType NewType) const
 {
 	FTile* Tile= World->GetTileAt(X, Y, Z);
-	//ETileType OldType = Tile->GetType();
-	
+	OnTileTypeChanged(*Tile, NewType);
 	Tile->SetType(NewType);
 	return Tile;
 }
 
 // Called every frame
+// ReSharper disable once CppParameterMayBeConst
 void AGridWorldController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

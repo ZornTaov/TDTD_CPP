@@ -40,7 +40,7 @@ protected:
 public:
 	int GetDepth() const;
 	FGridWorldLayer() = default;
-	explicit FGridWorldLayer(UGridWorld* Gw, int Index);
+	explicit FGridWorldLayer(UGridWorld* Gw, int Index, ETileType InitType = ETileType::Empty);
 
 	FTile* GetTileAt(int X, int Y);
 	

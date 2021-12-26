@@ -29,11 +29,9 @@ public:
 	int TileThickness = 100;
 	int TileCount = 0;
 	UFUNCTION(BlueprintCallable)
-	void Init();
+	void Init(ETileType InitType = ETileType::Empty);
 	FVector Size() const {return FVector(Width, Height, Depth);}
 	FGridWorldLayer* GetLayer(int Index);
 	FTile* GetTileAt(FVector Pos);
 	FTile* GetTileAt(int X, int Y, int Z);
-	FTile* SetTileType(FVector Pos, ETileType NewType);
-	FTile* SetTileType(int X, int Y, int Z, ETileType NewType);
 };
