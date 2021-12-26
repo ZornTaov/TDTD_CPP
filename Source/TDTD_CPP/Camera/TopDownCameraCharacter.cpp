@@ -26,11 +26,13 @@ ATopDownCameraCharacter::ATopDownCameraCharacter(const FObjectInitializer& Objec
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	CameraRoot = CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
+	CameraRoot->SetupAttachment(RootComponent);
+	CameraRoot->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
+	CameraRoot->SetUsingAbsoluteLocation(true);
 	// Create a camera boom...
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
-	CameraBoom->SetUsingAbsoluteLocation(true);
+	CameraBoom->SetupAttachment(CameraRoot);
 	CameraBoom->TargetArmLength = 1600.f;
 	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
@@ -41,6 +43,7 @@ ATopDownCameraCharacter::ATopDownCameraCharacter(const FObjectInitializer& Objec
 	TopDownCameraComponent->SetupAttachment(CameraOffsetter);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
 	CursorToWorld->SetupAttachment(RootComponent);
@@ -87,7 +90,7 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 			FVector EndLocation = Camera->GetComponentRotation().Vector() * 2000.0f;
 			Params.AddIgnoredActor(Parent);
 			World->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, Params);
-			FQuat SurfaceRotation = HitResult.ImpactNormal.ToOrientationRotator().Quaternion();
+			//FQuat SurfaceRotation = HitResult.ImpactNormal.ToOrientationRotator().Quaternion();
 			//Cursor->SetWorldLocationAndRotation(HitResult.Location, SurfaceRotation);
 			Cursor->SetWorldLocation(HitResult.Location);
 			//Cursor->SetWorldRotation(SurfaceRotation);
@@ -96,18 +99,17 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 	else if (APlayerController* PC = Cast<APlayerController>(Parent->GetController()))
 	{
 		PC->GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
-		FVector HitLocation{};
 		FNavLocation NavLoc;
 		FVector QueryingExtent = FVector(5.0f, 5.0f, 250.0f);
 		FNavAgentProperties NavAgentProps;
 		//Set you NavAgentProps properties here (radius, height, etc)
-		bool bol = NavSys->ProjectPointToNavigation(HitResult.Location, NavLoc, QueryingExtent);
+		NavSys->ProjectPointToNavigation(HitResult.Location, NavLoc, QueryingExtent);
 		DrawDebugPoint(Parent->GetWorld(), NavLoc.Location, 20, FColor(52,220,239), false);
 
 		if (NavLoc.HasNodeRef())
 		{
-			FVector CursorFVec = HitResult.ImpactNormal;
-			FRotator CursorR = CursorFVec.Rotation();
+			//FVector CursorFVec = HitResult.ImpactNormal;
+			//FRotator CursorR = CursorFVec.Rotation();
 			FVector CursorL = HitResult.Location.GridSnap(100.0f);
 			CursorL.Z = HitResult.Location.Z;
 			Cursor->SetWorldLocation(CursorL);

@@ -30,6 +30,9 @@ private:
 	/** A decal that projects to the cursor location. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* CameraOffsetter;
+	/** A decal that projects to the cursor location. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* CameraRoot;
 	
 public:
 	virtual void BeginPlay() override;
@@ -39,6 +42,8 @@ public:
 
 	/** Returns TopDownCameraComponent sub-object **/
 	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
+	/** Returns CameraRoot sub-object **/
+	FORCEINLINE class USceneComponent* GetCameraRoot() const { return CameraRoot; }
 	/** Returns CameraBoom sub-object **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns CameraBoom sub-object **/

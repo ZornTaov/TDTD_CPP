@@ -5,16 +5,53 @@
 #include "GridWorldLayer.h"
 #include "VarDump.h"
 
-UGridWorld::UGridWorld()
-{
-	
-}
-
 void UGridWorld::Init()
 {
+	Layers.SetNum(Depth);
 	for (int i = 0; i < Depth; ++i)
 	{
-		Layers.Add(UGridWorldLayer::Make(this, Width, Height));
+		if(Layers[i].GetDepth() == -1 || Layers[i].GetDepth() != i)
+			Layers[i] = FGridWorldLayer(this, i);
 	}
-	VARDUMP(this->TileCount);
 }
+
+FGridWorldLayer* UGridWorld::GetLayer(const int Index)
+{
+	if (Index >= 0 && Index < Depth)
+	{
+		return &Layers[Index];	
+	}
+	return nullptr;
+}
+
+FTile* UGridWorld::GetTileAt(const FVector Pos)
+{
+	return GetTileAt(Pos.X, Pos.Y, Pos.Z);
+}
+
+FTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
+{
+	FGridWorldLayer* Layer = GetLayer(Z);
+	if (!ensure(Layer != nullptr))
+	{
+		UE_LOG(LogActor, Error, TEXT("No layers?!"));
+		return nullptr;
+	}
+	else
+	{
+		return Layer->GetTileAt(X, Y);
+	}
+}
+
+FTile* UGridWorld::SetTileType(const FVector Pos, const ETileType NewType)
+{
+	return SetTileType(Pos.X, Pos.Y, Pos.Z, NewType);
+}
+
+FTile* UGridWorld::SetTileType(const int X, const int Y, const int Z, ETileType NewType)
+{
+	FTile* Tile = GetTileAt(X, Y, Z);
+	Tile->SetType(NewType);
+	return Tile;
+}
+

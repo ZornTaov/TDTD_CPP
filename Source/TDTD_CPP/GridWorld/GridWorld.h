@@ -14,16 +14,26 @@ class TDTD_CPP_API UGridWorld final : public UActorComponent
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Width;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Height;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Depth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<UGridWorldLayer*> Layers;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, NoClear, EditFixedSize)
+	TArray<FGridWorldLayer> Layers;
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int Width = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int Height = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int Depth = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int TileSize = 200;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int TileThickness = 100;
 	int TileCount = 0;
-	UGridWorld();
+	UFUNCTION(BlueprintCallable)
 	void Init();
+	FVector Size() const {return FVector(Width, Height, Depth);}
+	FGridWorldLayer* GetLayer(int Index);
+	FTile* GetTileAt(FVector Pos);
+	FTile* GetTileAt(int X, int Y, int Z);
+	FTile* SetTileType(FVector Pos, ETileType NewType);
+	FTile* SetTileType(int X, int Y, int Z, ETileType NewType);
 };

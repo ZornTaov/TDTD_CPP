@@ -3,8 +3,8 @@
 #include "TDTD_CPPGameMode.h"
 
 #include "EngineUtils.h"
-#include "TopDownCameraController.h"
-#include "TopDownCameraCharacter.h"
+#include "Camera/TopDownCameraController.h"
+#include "Camera/TopDownCameraCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 void ATDTD_CPPGameMode::BeginPlay()

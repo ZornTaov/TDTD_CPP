@@ -10,9 +10,7 @@ public class TDTD_CPP : ModuleRules
 
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"TDTD_CPP/Camera",
-				"TDTD_CPP/GridWorld",
-				"TDTD_CPP/Units"
+				"TDTD_CPP"
 				// ... add public include paths required here ...
 			}
 		);
@@ -20,9 +18,7 @@ public class TDTD_CPP : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"TDTD_CPP/Camera",
-				"TDTD_CPP/GridWorld",
-				"TDTD_CPP/Units"
+				"TDTD_CPP"
 				// ... add other private include paths required here ...
 			}
 		);

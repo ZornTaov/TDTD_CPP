@@ -3,8 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BaseUnitCharacter.h"
-#include "GridWorld.h"
+#include "Units/BaseUnitCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "TopDownCameraController.generated.h"
 
@@ -17,11 +16,11 @@ class ATopDownCameraController final : public APlayerController
 public:
 	ATopDownCameraController();
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UGridWorld* GridWorld;
 	virtual void BeginPlay() override;
 	/** True if the controlled character should navigate to the mouse cursor. */
-	uint32 bMoveToMouseCursor : 1;
+	bool bMoveToMouseCursor : 1;
+	bool bManipulateCamera;
+	bool bManipulateCameraRot;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Units, meta = (AllowPrivateAccess = "true"))
 	TArray<ABaseUnitCharacter*> SelectedUnits;
 
@@ -42,6 +41,11 @@ protected:
 	/** Navigate player to the given world location. */
 	void SetNewMoveDestination(const FVector DestLocation);
 
+	void OnManipulateCameraPressed();
+	void OnManipulateCameraReleased();
+	void OnManipulateCameraRotPressed();
+	void OnManipulateCameraRotReleased();
+	
 	/** Input handlers for SetDestination action. */
 	void OnSetDestinationPressed();
 	void OnSetDestinationReleased();

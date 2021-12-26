@@ -3,44 +3,45 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Tile.h"
 #include "GridWorldLayer.generated.h"
 
 class UGridWorld;
-struct FTile;
 
 USTRUCT(BlueprintType)
 struct FTile2DArray{
 	GENERATED_BODY()
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, NoClear, EditFixedSize)
 	TArray<FTile> Ar;
 public:
-	FTile& operator[] (const int32 i) {
-		return Ar[i];
+	FTile& operator[] (const int32 I) {
+		return Ar[I];
 	}
  
-	void Add(FTile* Tile) {
+	void Add(const FTile* Tile) {
 		Ar.Add(*Tile);
 	}
 };
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable)
-class TDTD_CPP_API UGridWorldLayer final : public UObject
+USTRUCT(BlueprintType, Blueprintable)
+struct TDTD_CPP_API FGridWorldLayer
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int Width;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int Height;
 	UPROPERTY()
-	UGridWorld* World;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TArray<FTile2DArray> Tiles; 
+	UGridWorld* World = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, NoClear, EditFixedSize)
+	TArray<FTile2DArray> Tiles;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int Depth = -1;
 public:
-	UGridWorldLayer();
-	void Init(UGridWorld* Gw, int W, int H);
-	static UGridWorldLayer* Make(UGridWorld* Gw, int W, int H);
+	int GetDepth() const;
+	FGridWorldLayer() = default;
+	explicit FGridWorldLayer(UGridWorld* Gw, int Index);
+
+	FTile* GetTileAt(int X, int Y);
+	
 };
