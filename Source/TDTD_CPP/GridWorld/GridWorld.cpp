@@ -7,6 +7,7 @@
 
 void UGridWorld::Init(const ETileType InitType)
 {
+	// TODO: Allow for resizing of Layers[] and Layers->Tiles[][]
 	Layers.SetNum(Depth);
 	for (int i = 0; i < Depth; ++i)
 	{

@@ -32,6 +32,9 @@ USTRUCT(BlueprintType, Blueprintable)
 struct TDTD_CPP_API FTile
 {
 	GENERATED_BODY()
+	FTile() = default;
+	FTile(UGridWorld* Gw, int X, int Y, int Z);
+	static FTile* Make(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ETileType Type = ETileType::Empty;
@@ -39,16 +42,11 @@ protected:
 	//EWallType WallType = EWallType::Empty;
 	UPROPERTY(BlueprintReadOnly)
 	UGridWorld* World = nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	FTransform Pos = FTransform::Identity;
+
 public:
 	FTransform& GetPos();
-	__declspec(property(get = GetPos)) FTransform FPos;
-	int InstanceIndex = -1;
-	__declspec(property(get = GetInstanceIndex, put = SetInstanceIndex)) int FInstanceIndex;
-	FTile() = default;
-	FTile(UGridWorld* Gw, int X, int Y, int Z);
-	static FTile* Make(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
 	ETileType GetType() const;
 	void SetType(ETileType InType);
 	FVector GetWorldPos() const;
@@ -56,7 +54,5 @@ public:
 	void SetPos(const FVector& InPos);
 	FRotator GetRot() const;
 	void SetRot(const FRotator& InRot);
-	int GetInstanceIndex() const;
-	void SetInstanceIndex(int NewIndex);
 };
 

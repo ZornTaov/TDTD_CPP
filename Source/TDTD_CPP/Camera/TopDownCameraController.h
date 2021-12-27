@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Units/BaseUnitCharacter.h"
 #include "GameFramework/PlayerController.h"
+#include "GridWorld/GridWorldController.h"
 #include "TopDownCameraController.generated.h"
 
 UCLASS()
@@ -23,6 +24,8 @@ protected:
 	bool bManipulateCameraRot;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Units, meta = (AllowPrivateAccess = "true"))
 	TArray<ABaseUnitCharacter*> SelectedUnits;
+	UPROPERTY()
+	AGridWorldController* WorldController = nullptr;
 
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;

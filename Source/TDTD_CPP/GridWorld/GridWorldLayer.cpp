@@ -3,6 +3,7 @@
 
 #include "GridWorldLayer.h"
 #include "GridWorld.h"
+#include "VarDump.h"
 
 
 int FGridWorldLayer::GetDepth() const
@@ -35,7 +36,8 @@ FTile* FGridWorldLayer::GetTileAt(const int X, const int Y)
 	{
 		if (Y >= 0 && Y < World->Height)
 		{
-			return &Tiles[X][Y];
+			FTile* Tile = Tiles[Y][X];
+			return Tile;
 		}
 	}
 	return nullptr;

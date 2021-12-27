@@ -74,12 +74,12 @@ void AGridWorldController::InitInstance()
 		{
 			for (int y = 0; y < World->Size().Y; ++y)
 			{
-				FTile* Tile = World->GetTileAt(x, y, z);
+				const FTile* Tile = World->GetTileAt(x, y, z);
 				TileTransform.SetLocation(FVector(x * World->TileSize, y * World->TileSize, z * World->TileThickness));
 				const uint8 Type = static_cast<uint8>(Tile->GetType());
 				if (Type && Type < FloorComponents.Num())
 				{
-					Tile->InstanceIndex = FloorComponents[Type]->AddInstance(TileTransform);
+					FloorComponents[Type]->AddInstance(TileTransform);
 				}
 				/*const uint8 WallType = static_cast<uint8>(Tile->GetWallType());
 				if (WallType && WallType < WallComponents.Num())
@@ -127,35 +127,79 @@ void AGridWorldController::ClearInstances(TArray<UInstancedStaticMeshComponent*>
 	}
 }
 
-void AGridWorldController::OnTileTypeChanged(FTile& TileDataRef, ETileType NewType) const
+void AGridWorldController::TileClicked(const FVector& Vector) const
 {
-	FTile* TileData = &TileDataRef;
-	ETileType OldType = TileData->GetType();
-	if (!FloorComponents.IsValidIndex(static_cast<uint8>(OldType)))
+	FVector Pos = (Vector-GetActorLocation())/World->TileSize;
+	Pos.Z = (Vector.Z - GetActorLocation().Z)/World->TileThickness;
+	FTile* Tile = World->GetTileAt(Pos);
+	if (!Tile)
 	{
-		UE_LOG(LogActor, Error, TEXT("Index %d not found for %s, are we missing a component?"), TileData->GetInstanceIndex(), OldType)
-		return;
-	} 
-	if(FloorComponents[static_cast<uint8>(OldType)]->GetNumRenderInstances() <= TileData->GetInstanceIndex())
-		FloorComponents[static_cast<uint8>(OldType)]->RemoveInstance(TileData->InstanceIndex);
-	
-	if (!FloorComponents.IsValidIndex(static_cast<uint8>(NewType)))
-	{
-		UE_LOG(LogActor, Error, TEXT("Index %d not found for %s, are we missing a component?"), TileData->GetInstanceIndex(), NewType)
 		return;
 	}
-	const int Id = FloorComponents[static_cast<uint8>(NewType)]->AddInstance(FTransform(TileData->GetRot().Quaternion(), TileData->GetWorldPos()));
-	TileData->SetInstanceIndex(Id);
+	// TODO: Temporary switch/case to rotate TileType
+	switch (Tile->GetType())
+	{
+	case ETileType::Ground:
+		UpdateTile(Pos, ETileType::Floor, Tile);
+		break;
+	case ETileType::Floor:
+		UpdateTile(Pos, ETileType::Ramp, Tile);
+		break;
+	case ETileType::Ramp:
+		UpdateTile(Pos, ETileType::Ground, Tile);
+		break;
+	case ETileType::Empty: 
+	default:
+		checkNoEntry();
+	}
 }
 
-FTile* AGridWorldController::UpdateTile(const FVector Pos, const ETileType& NewType) const
+void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType NewType) const
 {
-	return UpdateTile(Pos.X, Pos.Y, Pos.Z, NewType);
+	const FTile* TileData = &TileDataRef;
+	ETileType OldType = TileData->GetType();
+	const uint8 OldTypeIndex = static_cast<uint8>(OldType);
+	if (!FloorComponents.IsValidIndex(OldTypeIndex))
+	{
+		UE_LOG(LogActor, Error, TEXT("Index %d not found for FloorComponents, are we missing a component?"), OldTypeIndex, OldType)
+		return;
+	}
+
+	const uint8 NewTypeIndex = static_cast<uint8>(NewType);
+	if (!FloorComponents.IsValidIndex(NewTypeIndex))
+	{
+		UE_LOG(LogActor, Error, TEXT("Index %d not found for FloorComponents, are we missing a component?"), NewTypeIndex, NewType)
+		return;
+	}
+	int Index = -1;
+	for (int i = 0; i < FloorComponents[OldTypeIndex]->GetInstanceCount(); ++i)
+	{
+		FTransform Transform;
+		FloorComponents[OldTypeIndex]->GetInstanceTransform(i, Transform);
+		if ((Transform.GetLocation()).Equals(TileData->GetWorldPos()))
+		{
+			Index = i;
+		}
+	}
+	if(FloorComponents[OldTypeIndex]->InstanceBodies.IsValidIndex(Index))
+	{
+		FloorComponents[OldTypeIndex]->RemoveInstance(Index);
+	}
+	FloorComponents[NewTypeIndex]->AddInstance(FTransform(TileData->GetRot().Quaternion(), TileData->GetWorldPos()));
 }
 
-FTile* AGridWorldController::UpdateTile(const int X, const int Y, const int Z, const ETileType NewType) const
+FTile* AGridWorldController::UpdateTile(const FVector Pos, const ETileType& NewType, FTile* Tile) const
 {
-	FTile* Tile= World->GetTileAt(X, Y, Z);
+	return UpdateTile(Pos.X, Pos.Y, Pos.Z, NewType, Tile);
+}
+
+FTile* AGridWorldController::UpdateTile(const int X, const int Y, const int Z, const ETileType NewType, FTile* InTile) const
+{
+	FTile* Tile = InTile;
+	if (!Tile)
+	{
+		Tile = World->GetTileAt(X, Y, Z);
+	}
 	OnTileTypeChanged(*Tile, NewType);
 	Tile->SetType(NewType);
 	return Tile;

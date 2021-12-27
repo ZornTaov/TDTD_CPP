@@ -33,6 +33,19 @@ ABaseUnitCharacter::ABaseUnitCharacter()
 	//GetCharacterMovement()->bConstrainToPlane = true;
 	//GetCharacterMovement()->bSnapToPlaneAtStart = true;
 	GetCharacterMovement()->MaxStepHeight = 50.0f;
+
+	// Create a decal in the world to show the cursor's location
+	SelectionCursor = CreateDefaultSubobject<UDecalComponent>("SelectionCursor");
+	SelectionCursor->SetupAttachment(RootComponent);
+	static ConstructorHelpers::FObjectFinder<UMaterial> DecalMaterialAsset(
+		TEXT("Material'/Game/Materials/M_Cursor_Decal.M_Cursor_Decal'"));
+	if (DecalMaterialAsset.Succeeded())
+	{
+		SelectionCursor->SetDecalMaterial(DecalMaterialAsset.Object);
+	}
+	SelectionCursor->DecalSize = FVector(16.0f, 32.0f, 32.0f);
+	SelectionCursor->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
+	SelectionCursor->SetVisibility(false);
 	
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;

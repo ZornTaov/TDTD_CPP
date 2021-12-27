@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Tile.h"
+#include "VarDump.h"
 #include "GridWorldLayer.generated.h"
 
 class UGridWorld;
@@ -15,8 +16,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, NoClear, EditFixedSize)
 	TArray<FTile> Ar;
 public:
-	FTile& operator[] (const int32 I) {
-		return Ar[I];
+	FTile* operator[] (const int32 I) {
+		FTile* Tile = &Ar[I];
+		return Tile;
 	}
  
 	void Add(const FTile* Tile) {

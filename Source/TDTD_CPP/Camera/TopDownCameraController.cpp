@@ -9,6 +9,7 @@
 #include "Units/BaseUnitCharacter.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "VarDump.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -18,6 +19,7 @@ void FindAllActors(UWorld* World, TArray<T*>& Out)
 	for (TActorIterator<T> It(World); It; ++It)
 	{
 		Out.Add(*It);
+		It->SelectionCursor->SetVisibility(true);
 	}
 }
 
@@ -31,6 +33,12 @@ void ATopDownCameraController::BeginPlay()
 {
 	Super::BeginPlay();
 	FindAllActors(GetWorld(), SelectedUnits);
+	//FString MyActorName = GetActorLabel();
+	//VARDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
+	/*TArray<AGridWorldController*> Temp;
+	FindAllActors(GetWorld(), Temp);
+	if(!ensure(Temp.Num() >= 1)) return;
+	WorldController = Temp[0];*/
 }
 
 void ATopDownCameraController::PlayerTick(const float DeltaTime)
@@ -39,7 +47,6 @@ void ATopDownCameraController::PlayerTick(const float DeltaTime)
 	// keep updating the destination every tick while desired
 	if (bMoveToMouseCursor)
 	{
-		MoveToMouseCursor();
 	}
 	if (bManipulateCameraRot)
 	{
@@ -100,7 +107,6 @@ void ATopDownCameraController::OnResetVR()
 
 void ATopDownCameraController::MoveToMouseCursor()
 {
-	if(!ensure(SelectedUnits.Num() != 0)) return;
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
 	{
 		if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
@@ -115,14 +121,42 @@ void ATopDownCameraController::MoveToMouseCursor()
 	{
 		// Trace to see what is under the mouse cursor
 		FHitResult Hit;
-		GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+		GetHitResultUnderCursor(ECC_Camera, false, Hit);
 
 		if (Hit.bBlockingHit)
 		{
-			FVector CursorL = Hit.ImpactPoint.GridSnap(100.0f);
-			CursorL.Z = Hit.ImpactPoint.Z;
-			// We hit something, move there
-			SetNewMoveDestination(CursorL);
+			if(GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Clicked %s"), *Hit.Actor->GetFName().ToString()));
+			if (Hit.Actor->IsA(ABaseUnitCharacter::StaticClass()))
+			{
+				ABaseUnitCharacter* Unit = Cast<ABaseUnitCharacter>(Hit.Actor);
+				if (SelectedUnits.Contains(Unit))
+				{
+					SelectedUnits.Remove(Unit);
+					Unit->SelectionCursor->SetVisibility(false);
+				}
+				else
+				{
+					SelectedUnits.Add(Unit);
+					Unit->SelectionCursor->SetVisibility(true);
+				}
+				//UPDATEDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
+			}
+			if (SelectedUnits.Num() > 0)
+			{
+				FVector CursorL = Hit.ImpactPoint.GridSnap(200.0f);
+				CursorL.Z = Hit.ImpactPoint.Z;
+				// We hit something, move there
+				SetNewMoveDestination(CursorL);
+			}
+			else if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+			{
+				WorldController = Cast<AGridWorldController>(Hit.Actor);
+				WorldController->TileClicked(Hit.Location.GridSnap(200.0f));
+			}
+			
+			
+			
 		}
 	}
 }
@@ -198,6 +232,7 @@ void ATopDownCameraController::OnSetDestinationReleased()
 {
 	// clear flag to indicate we should stop updating the destination
 	bMoveToMouseCursor = false;
+		MoveToMouseCursor();
 }
 
 TArray<ABaseUnitCharacter*>* ATopDownCameraController::GetSelectedUnits()

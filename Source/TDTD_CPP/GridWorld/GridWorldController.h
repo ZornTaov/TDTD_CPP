@@ -43,20 +43,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
-	void OnTileTypeChanged(FTile& TileData, ETileType NewType) const;
+	void OnTileTypeChanged(const FTile& TileDataRef, ETileType NewType) const;
 
-	FTile* UpdateTile(FVector Pos, const ETileType& NewType) const;
-	FTile* UpdateTile(int X, int Y, int Z, ETileType NewType) const;
+	FTile* UpdateTile(FVector Pos, const ETileType& NewType, FTile* Tile = nullptr) const;
+	FTile* UpdateTile(int X, int Y, int Z, ETileType NewType, FTile* InTile = nullptr) const;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetupTileEvents();
-
 	virtual void OnConstruction(const FTransform& Transform) override;
+	
 	void InitComponents(TArray<UInstancedStaticMeshComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const;
 	void InitInstance();
 	void ClearAllInstances();
 	void ClearInstances(TArray<UInstancedStaticMeshComponent*> &Components);
-	
+	void TileClicked(const FVector& Vector) const;
 };

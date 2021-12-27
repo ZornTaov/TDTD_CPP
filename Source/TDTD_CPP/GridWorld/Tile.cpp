@@ -4,6 +4,21 @@
 #include "Tile.h"
 #include "GridWorld.h"
 
+FTile::FTile(UGridWorld* Gw, const int X, const int Y, const int Z)
+{
+	this->Pos.SetLocation(FVector(X,Y,Z));
+	this->World = Gw;
+	if(Gw)
+		Gw->TileCount++;
+}
+
+FTile* FTile::Make(UGridWorld* Gw, const int X, const int Y, const int Z, const ETileType InitType)
+{
+	FTile* t = new FTile(Gw, X, Y, Z);
+	t->SetType(InitType);
+	return t;
+}
+
 ETileType FTile::GetType() const
 {
 	return Type;
@@ -50,29 +65,3 @@ void FTile::SetRot(const FRotator& InRot)
 {
 	this->Pos.SetRotation(InRot.Quaternion());
 }
-
-int FTile::GetInstanceIndex() const
-{
-	return InstanceIndex;
-}
-
-void FTile::SetInstanceIndex(const int NewIndex)
-{
-	this->InstanceIndex = NewIndex;
-}
-
-FTile::FTile(UGridWorld* Gw, const int X, const int Y, const int Z)
-{
-	this->Pos.SetLocation(FVector(X,Y,Z));
-	this->World = Gw;
-	if(Gw)
-		Gw->TileCount++;
-}
-
-FTile* FTile::Make(UGridWorld* Gw, const int X, const int Y, const int Z, const ETileType InitType)
-{
-	FTile* t = new FTile(Gw, X, Y, Z);
-	t->SetType(InitType);
-	return t;
-}
-

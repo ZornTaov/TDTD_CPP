@@ -104,13 +104,13 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 		FNavAgentProperties NavAgentProps;
 		//Set you NavAgentProps properties here (radius, height, etc)
 		NavSys->ProjectPointToNavigation(HitResult.Location, NavLoc, QueryingExtent);
-		DrawDebugPoint(Parent->GetWorld(), NavLoc.Location, 20, FColor(52,220,239), false);
+		//DrawDebugPoint(Parent->GetWorld(), NavLoc.Location, 20, FColor(52,220,239), false);
 
 		if (NavLoc.HasNodeRef())
 		{
 			//FVector CursorFVec = HitResult.ImpactNormal;
 			//FRotator CursorR = CursorFVec.Rotation();
-			FVector CursorL = HitResult.Location.GridSnap(100.0f);
+			FVector CursorL = HitResult.Location.GridSnap(200.0f);
 			CursorL.Z = HitResult.Location.Z;
 			Cursor->SetWorldLocation(CursorL);
 			//Cursor->SetWorldRotation(CursorR);

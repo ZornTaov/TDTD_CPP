@@ -48,7 +48,7 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns CameraBoom sub-object **/
 	FORCEINLINE class USceneComponent* GetCameraOffsetter() const { return CameraOffsetter; }
-	/** Returns CursorToWorld sub-object **/
+	/** Returns SelectionCursor sub-object **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() const { return CursorToWorld; }
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
