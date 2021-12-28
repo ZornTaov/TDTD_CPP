@@ -10,7 +10,9 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "VarDump.h"
+#include "Engine/DecalActor.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GridWorld/GridWorld.h"
 #include "Kismet/KismetMathLibrary.h"
 
 template<typename T>
@@ -27,12 +29,26 @@ ATopDownCameraController::ATopDownCameraController()
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
+	
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> DecalMaterialAsset(
+		TEXT("MaterialInstanceConstant'/Game/Materials/M_GridDecal_Inst.M_GridDecal_Inst'"));
+	if (DecalMaterialAsset.Succeeded())
+	{
+		ActionDecal = DecalMaterialAsset.Object;
+	}
 }
 
 void ATopDownCameraController::BeginPlay()
 {
 	Super::BeginPlay();
-	FindAllActors(GetWorld(), SelectedUnits);
+	SelectionDecal = GetWorld()->SpawnActor<ADecalActor>(DragStartPosition, FRotator());
+	if (SelectionDecal)
+	{
+		SelectionDecal->SetDecalMaterial(ActionDecal);
+		SelectionDecal->GetDecal()->DecalSize = FVector(100.0f);
+		SelectionDecal->SetActorHiddenInGame(true);
+	}
+	//FindAllActors(GetWorld(), SelectedUnits);
 	//FString MyActorName = GetActorLabel();
 	//VARDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
 	/*TArray<AGridWorldController*> Temp;
@@ -41,13 +57,25 @@ void ATopDownCameraController::BeginPlay()
 	WorldController = Temp[0];*/
 }
 
+AGridWorldController* ATopDownCameraController::GetWorldController() const
+{
+	return WorldController;
+}
+
+void ATopDownCameraController::SetWorldController(AGridWorldController* const InWorldController)
+{
+	this->WorldController = InWorldController;
+}
+
+TArray<ABaseUnitCharacter*>* ATopDownCameraController::GetSelectedUnits()
+{
+	return &SelectedUnits;
+}
+
 void ATopDownCameraController::PlayerTick(const float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
-	// keep updating the destination every tick while desired
-	if (bMoveToMouseCursor)
-	{
-	}
+	// keep updating the Camera every tick while desired
 	if (bManipulateCameraRot)
 	{
 		float Dx;
@@ -64,18 +92,66 @@ void ATopDownCameraController::PlayerTick(const float DeltaTime)
 		MoveCameraX(-(Dx*2));
 		MoveCameraY(-(Dy*2));
 	}
-}
+	if (bIsDragging)
+	{
+		FHitResult Hit;
+		GetHitResultUnderCursor(ECC_Camera, false, Hit);
 
+		if (Hit.bBlockingHit)
+		{
+			// TODO: check if in "build mode" instead
+			if (SelectedUnits.Num() <= 0)
+			{
+				if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+				{
+					DragEndPosition = Hit.Location.GridSnap(WorldController->GetGridWorld()->TileSize);
+				}
+			}
+		}
+		if (SelectionDecal)
+		{
+			int StartX = FMath::FloorToInt(DragStartPosition.X);
+			int EndX = FMath::FloorToInt(DragEndPosition.X);
+			if(EndX < StartX)
+			{
+				const int Tmp = EndX;
+				EndX = StartX;
+				StartX = Tmp;
+			}
+
+			int StartY = FMath::FloorToInt(DragStartPosition.Y);
+			int EndY = FMath::FloorToInt(DragEndPosition.Y);
+			if(EndY < StartY)
+			{
+				const int Tmp = EndY;
+				EndY = StartY;
+				StartY = Tmp;
+			}
+			const float Z = (StartX - EndX)*0.005f - 1.05f;
+			const float Y = (StartY - EndY)*0.005f - 1.05f;
+			SelectionDecal->SetActorTransform(
+				FTransform(
+					FRotator(-90,0,0).Quaternion(),
+					(DragStartPosition+DragEndPosition)/2,
+					FVector(2, Y, Z)
+					));
+		}
+	}
+}
 
 void ATopDownCameraController::SetupInputComponent()
 {
 	// set up gameplay key bindings
 	Super::SetupInputComponent();
 
-	InputComponent->BindAction("SetDestination", IE_Pressed, this,
-		&ATopDownCameraController::OnSetDestinationPressed);
-	InputComponent->BindAction("SetDestination", IE_Released, this,
-		&ATopDownCameraController::OnSetDestinationReleased);
+	InputComponent->BindAction("Interact", IE_Pressed, this,
+		&ATopDownCameraController::OnInteractPressed);
+	InputComponent->BindAction("Interact", IE_Released, this,
+		&ATopDownCameraController::OnInteractReleased);
+	InputComponent->BindAction("RotateTile", IE_Pressed, this,
+		&ATopDownCameraController::OnRotateTiePressed);
+	InputComponent->BindAction("RotateTile", IE_Released, this,
+		&ATopDownCameraController::OnRotateTieReleased);
 	InputComponent->BindAction("ManipulateCamera", IE_Pressed, this,
 		&ATopDownCameraController::OnManipulateCameraPressed);
 	InputComponent->BindAction("ManipulateCamera", IE_Released, this,
@@ -105,7 +181,7 @@ void ATopDownCameraController::OnResetVR()
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
-void ATopDownCameraController::MoveToMouseCursor()
+void ATopDownCameraController::InteractUnderMouseCursor()
 {
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
 	{
@@ -122,7 +198,6 @@ void ATopDownCameraController::MoveToMouseCursor()
 		// Trace to see what is under the mouse cursor
 		FHitResult Hit;
 		GetHitResultUnderCursor(ECC_Camera, false, Hit);
-
 		if (Hit.bBlockingHit)
 		{
 			if(GEngine)
@@ -142,9 +217,9 @@ void ATopDownCameraController::MoveToMouseCursor()
 				}
 				//UPDATEDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
 			}
-			if (SelectedUnits.Num() > 0)
+			else if (SelectedUnits.Num() > 0)
 			{
-				FVector CursorL = Hit.ImpactPoint.GridSnap(200.0f);
+				FVector CursorL = Hit.ImpactPoint.GridSnap(WorldController->GetGridWorld()->TileSize);
 				CursorL.Z = Hit.ImpactPoint.Z;
 				// We hit something, move there
 				SetNewMoveDestination(CursorL);
@@ -152,11 +227,14 @@ void ATopDownCameraController::MoveToMouseCursor()
 			else if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
 				WorldController = Cast<AGridWorldController>(Hit.Actor);
-				WorldController->TileClicked(Hit.Location.GridSnap(200.0f));
+				
+				WorldController = Cast<AGridWorldController>(Hit.Actor);
+				for (FVector Loc : SelectedTilesLocations)
+				{
+					WorldController->TileClicked(Loc);
+				}
+				SelectedTilesLocations.Empty();
 			}
-			
-			
-			
 		}
 	}
 }
@@ -202,6 +280,86 @@ void ATopDownCameraController::SetNewMoveDestination(const FVector DestLocation)
 	}
 }
 
+void ATopDownCameraController::RotateTileUnderMouseCursor()
+{
+	FHitResult Hit;
+	GetHitResultUnderCursor(ECC_Camera, false, Hit);
+
+	if (Hit.bBlockingHit)
+	{
+		if (SelectedUnits.Num() <= 0)
+		{
+			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+			{
+				WorldController = Cast<AGridWorldController>(Hit.Actor);
+				WorldController->TileRotate(Hit.Location.GridSnap(WorldController->GetGridWorld()->TileSize));
+			}
+		}
+	}
+}
+
+void ATopDownCameraController::StartDrag()
+{
+	FHitResult Hit;
+	GetHitResultUnderCursor(ECC_Camera, false, Hit);
+
+	if (Hit.bBlockingHit)
+	{
+		// TODO: check if in "build mode" instead
+		if (SelectedUnits.Num() <= 0)
+		{
+			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+			{
+				DragStartPosition = Hit.Location.GridSnap(WorldController->GetGridWorld()->TileSize);
+				bIsDragging = true;
+				if (SelectionDecal)
+				{
+					SelectionDecal->SetActorHiddenInGame(false);
+				}
+			}
+		}
+	}
+}
+
+void ATopDownCameraController::EndDrag()
+{
+	bIsDragging = false;
+	if (SelectionDecal)
+	{
+		SelectionDecal->SetActorHiddenInGame(true);
+	}
+	
+	int StartX = FMath::FloorToInt(DragStartPosition.X);
+	int EndX = FMath::FloorToInt(DragEndPosition.X);
+	if(EndX < StartX)
+	{
+		const int Tmp = EndX;
+		EndX = StartX;
+		StartX = Tmp;
+	}
+	
+	int StartY = FMath::FloorToInt(DragStartPosition.Y);
+	int EndY = FMath::FloorToInt(DragEndPosition.Y);
+	if(EndY < StartY)
+	{
+		const int Tmp = EndY;
+		EndY = StartY;
+		StartY = Tmp;
+	}
+
+	for (int X = StartX; X <= EndX; X+=WorldController->GetGridWorld()->TileSize)
+	{
+		for (int Y = StartY; Y <= EndY; Y+=WorldController->GetGridWorld()->TileSize)
+		{
+			SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(WorldController->GetGridWorld()->TileThickness).Z));
+		}
+	}
+	/*if(GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,
+			FString::Printf(TEXT("Selected from %d,%d to %d,%d Count: %d"), StartX, StartY, EndX, EndY, SelectedTilesLocations.Num()));*/
+
+}
+
 void ATopDownCameraController::OnManipulateCameraPressed()
 {
 	bManipulateCamera = true;
@@ -222,22 +380,28 @@ void ATopDownCameraController::OnManipulateCameraRotReleased()
 	bManipulateCameraRot = false;
 }
 
-void ATopDownCameraController::OnSetDestinationPressed()
+void ATopDownCameraController::OnInteractPressed()
 {
 	// set flag to keep updating destination until released
-	bMoveToMouseCursor = true;
+	BInteractUnderMouseCursor = true;
+	StartDrag();
 }
 
-void ATopDownCameraController::OnSetDestinationReleased()
+void ATopDownCameraController::OnInteractReleased()
 {
 	// clear flag to indicate we should stop updating the destination
-	bMoveToMouseCursor = false;
-		MoveToMouseCursor();
+	BInteractUnderMouseCursor = false;
+	EndDrag();
+	InteractUnderMouseCursor();
 }
 
-TArray<ABaseUnitCharacter*>* ATopDownCameraController::GetSelectedUnits()
+void ATopDownCameraController::OnRotateTiePressed()
 {
-	return &SelectedUnits;
+}
+
+void ATopDownCameraController::OnRotateTieReleased()
+{
+	RotateTileUnderMouseCursor();
 }
 
 #pragma region Camera

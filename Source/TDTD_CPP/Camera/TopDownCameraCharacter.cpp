@@ -14,6 +14,8 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
+#include "TopDownCameraController.h"
+#include "GridWorld/GridWorld.h"
 
 ATopDownCameraCharacter::ATopDownCameraCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.DoNotCreateDefaultSubobject(ACharacter::MeshComponentName))
@@ -110,7 +112,10 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 		{
 			//FVector CursorFVec = HitResult.ImpactNormal;
 			//FRotator CursorR = CursorFVec.Rotation();
-			FVector CursorL = HitResult.Location.GridSnap(200.0f);
+			ATopDownCameraController* Controller = Cast<ATopDownCameraController>(PC);
+			float GridSnap = Controller && Controller->GetWorldController() ?
+				Controller->GetWorldController()->GetGridWorld()->TileSize : 200.0f;
+			FVector CursorL = HitResult.Location.GridSnap(GridSnap);
 			CursorL.Z = HitResult.Location.Z;
 			Cursor->SetWorldLocation(CursorL);
 			//Cursor->SetWorldRotation(CursorR);

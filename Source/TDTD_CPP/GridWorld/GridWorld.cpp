@@ -33,14 +33,11 @@ FTile* UGridWorld::GetTileAt(const FVector Pos)
 FTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
 {
 	FGridWorldLayer* Layer = GetLayer(Z);
-	if (!ensure(Layer != nullptr))
+	if (!Layer)
 	{
 		UE_LOG(LogActor, Error, TEXT("No layers?!"));
 		return nullptr;
 	}
-	else
-	{
-		return Layer->GetTileAt(X, Y);
-	}
+	return Layer->GetTileAt(X, Y);
 }
 

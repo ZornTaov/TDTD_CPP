@@ -5,6 +5,7 @@
 
 #include "GridWorld.h"
 #include "VarDump.h"
+#include "Camera/TopDownCameraController.h"
 
 // Sets default values
 AGridWorldController::AGridWorldController()
@@ -28,11 +29,26 @@ AGridWorldController::AGridWorldController()
     }
 }
 
+UGridWorld* AGridWorldController::GetGridWorld() const
+{
+	return World;
+}
+
+void AGridWorldController::SetGridWorld(UGridWorld* const InWorld)
+{
+	this->World = InWorld;
+}
+
 
 // Called when the game starts or when spawned
 void AGridWorldController::BeginPlay()
 {
 	Super::BeginPlay();
+	ATopDownCameraController* Controller = Cast<ATopDownCameraController>(GetWorld()->GetFirstPlayerController());
+	if (Controller)
+	{
+		Controller->SetWorldController(this);
+	}
 	//World->Init();
 	/*int Layer = 0;
 	for (int x = 0; x < World->Size().X; ++x)
@@ -154,6 +170,19 @@ void AGridWorldController::TileClicked(const FVector& Vector) const
 	}
 }
 
+void AGridWorldController::TileRotate(const FVector& Vector) const
+{
+	FVector Pos = (Vector-GetActorLocation())/World->TileSize;
+	Pos.Z = (Vector.Z - GetActorLocation().Z)/World->TileThickness;
+	FTile* Tile = World->GetTileAt(Pos);
+	if (!Tile)
+	{
+		return;
+	}
+	Tile->SetRot(Tile->GetRot()+FRotator(0,90,0));
+	UpdateTile(Pos, Tile->GetType(), Tile);
+}
+
 void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType NewType) const
 {
 	const FTile* TileData = &TileDataRef;
@@ -171,6 +200,7 @@ void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType
 		UE_LOG(LogActor, Error, TEXT("Index %d not found for FloorComponents, are we missing a component?"), NewTypeIndex, NewType)
 		return;
 	}
+	//Get correct InstanceIndex
 	int Index = -1;
 	for (int i = 0; i < FloorComponents[OldTypeIndex]->GetInstanceCount(); ++i)
 	{
@@ -179,12 +209,15 @@ void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType
 		if ((Transform.GetLocation()).Equals(TileData->GetWorldPos()))
 		{
 			Index = i;
+			break;
 		}
 	}
+	//Remove from old Type
 	if(FloorComponents[OldTypeIndex]->InstanceBodies.IsValidIndex(Index))
 	{
 		FloorComponents[OldTypeIndex]->RemoveInstance(Index);
 	}
+	//Add to new Type
 	FloorComponents[NewTypeIndex]->AddInstance(FTransform(TileData->GetRot().Quaternion(), TileData->GetWorldPos()));
 }
 

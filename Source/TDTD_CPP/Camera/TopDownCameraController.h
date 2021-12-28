@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DecalActor.h"
 #include "Units/BaseUnitCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "GridWorld/GridWorldController.h"
@@ -19,16 +20,30 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	/** True if the controlled character should navigate to the mouse cursor. */
-	bool bMoveToMouseCursor : 1;
+	bool BInteractUnderMouseCursor : 1;
 	bool bManipulateCamera;
 	bool bManipulateCameraRot;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Units, meta = (AllowPrivateAccess = "true"))
 	TArray<ABaseUnitCharacter*> SelectedUnits;
 	UPROPERTY()
 	AGridWorldController* WorldController = nullptr;
-
+	FVector DragStartPosition;
+	FVector DragEndPosition;
+	TArray<FVector> SelectedTilesLocations;
+	bool bIsDragging;
+	UPROPERTY()
+	ADecalActor* SelectionDecal = nullptr;
+	UPROPERTY()
+	UMaterialInterface* ActionDecal;
+public:
+	AGridWorldController* GetWorldController() const;
+	void SetWorldController(AGridWorldController* const InWorldController);
+protected:
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;
+	void OnRotateTiePressed();
+	void RotateTileUnderMouseCursor();
+	void OnRotateTieReleased();
 	virtual void SetupInputComponent() override;
 	// End PlayerController interface
 
@@ -36,7 +51,7 @@ protected:
 	void OnResetVR();
 
 	/** Navigate player to the current mouse cursor location. */
-	void MoveToMouseCursor();
+	void InteractUnderMouseCursor();
 
 	/** Navigate player to the current touch location. */
 	void MoveToTouchLocation(const ETouchIndex::Type FingerIndex, const FVector Location);
@@ -48,10 +63,12 @@ protected:
 	void OnManipulateCameraReleased();
 	void OnManipulateCameraRotPressed();
 	void OnManipulateCameraRotReleased();
-	
+
+	void StartDrag();
+	void EndDrag();
 	/** Input handlers for SetDestination action. */
-	void OnSetDestinationPressed();
-	void OnSetDestinationReleased();
+	void OnInteractPressed();
+	void OnInteractReleased();
 	
 	void MoveCamera(const FVector Vec) const;
 	void MoveCameraX(const float X);

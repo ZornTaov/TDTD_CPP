@@ -22,7 +22,10 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UGridWorld* World = nullptr;
-	
+public:
+	UGridWorld* GetGridWorld() const;
+	void SetGridWorld(UGridWorld* const InWorld);
+protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WorldRootComponent;
 	
@@ -58,4 +61,5 @@ public:
 	void ClearAllInstances();
 	void ClearInstances(TArray<UInstancedStaticMeshComponent*> &Components);
 	void TileClicked(const FVector& Vector) const;
+	void TileRotate(const FVector& Vector) const;
 };
