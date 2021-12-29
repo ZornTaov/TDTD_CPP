@@ -38,6 +38,8 @@ protected:
 public:
 	AGridWorldController* GetWorldController() const;
 	void SetWorldController(AGridWorldController* const InWorldController);
+	float GetTileSize() const;
+	float GetTileThickness() const;
 protected:
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;

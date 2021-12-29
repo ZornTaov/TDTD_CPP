@@ -67,6 +67,20 @@ void ATopDownCameraController::SetWorldController(AGridWorldController* const In
 	this->WorldController = InWorldController;
 }
 
+float ATopDownCameraController::GetTileSize() const
+{
+	return GetWorldController() &&
+		GetWorldController()->GetGridWorld() ?
+			GetWorldController()->GetGridWorld()->TileSize : 200.0f;
+}
+
+float ATopDownCameraController::GetTileThickness() const
+{
+	return GetWorldController() &&
+		GetWorldController()->GetGridWorld() ?
+			GetWorldController()->GetGridWorld()->TileThickness : 200.0f;
+}
+
 TArray<ABaseUnitCharacter*>* ATopDownCameraController::GetSelectedUnits()
 {
 	return &SelectedUnits;
@@ -104,7 +118,7 @@ void ATopDownCameraController::PlayerTick(const float DeltaTime)
 			{
 				if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 				{
-					DragEndPosition = Hit.Location.GridSnap(WorldController->GetGridWorld()->TileSize);
+					DragEndPosition = Hit.Location.GridSnap(GetTileSize());
 				}
 			}
 		}
@@ -219,7 +233,7 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 			}
 			else if (SelectedUnits.Num() > 0)
 			{
-				FVector CursorL = Hit.ImpactPoint.GridSnap(WorldController->GetGridWorld()->TileSize);
+				FVector CursorL = Hit.ImpactPoint.GridSnap(GetTileSize());
 				CursorL.Z = Hit.ImpactPoint.Z;
 				// We hit something, move there
 				SetNewMoveDestination(CursorL);
@@ -292,7 +306,7 @@ void ATopDownCameraController::RotateTileUnderMouseCursor()
 			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
 				WorldController = Cast<AGridWorldController>(Hit.Actor);
-				WorldController->TileRotate(Hit.Location.GridSnap(WorldController->GetGridWorld()->TileSize));
+				WorldController->TileRotate(Hit.Location.GridSnap(GetTileSize()));
 			}
 		}
 	}
@@ -310,7 +324,7 @@ void ATopDownCameraController::StartDrag()
 		{
 			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
-				DragStartPosition = Hit.Location.GridSnap(WorldController->GetGridWorld()->TileSize);
+				DragStartPosition = Hit.Location.GridSnap(GetTileSize());
 				bIsDragging = true;
 				if (SelectionDecal)
 				{
@@ -347,11 +361,11 @@ void ATopDownCameraController::EndDrag()
 		StartY = Tmp;
 	}
 
-	for (int X = StartX; X <= EndX; X+=WorldController->GetGridWorld()->TileSize)
+	for (int X = StartX; X <= EndX; X+=GetTileSize())
 	{
-		for (int Y = StartY; Y <= EndY; Y+=WorldController->GetGridWorld()->TileSize)
+		for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
 		{
-			SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(WorldController->GetGridWorld()->TileThickness).Z));
+			SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z));
 		}
 	}
 	/*if(GEngine)
@@ -476,12 +490,9 @@ void ATopDownCameraController::ZoomCamera(const float Axis)
 {
 	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
 	{
-		if (const UWorld* World = GetWorld())
-		{
-			float Len = CameraPawn->GetCameraBoom()->TargetArmLength;
-			Len += Axis * 2000 * World->GetDeltaSeconds();
-			CameraPawn->GetCameraBoom()->TargetArmLength = UKismetMathLibrary::Clamp( Len, 500, 2000);
-		}
+		float Len = CameraPawn->GetCameraBoom()->TargetArmLength;
+		Len -= Axis * Len;// * World->GetDeltaSeconds();
+		CameraPawn->GetCameraBoom()->TargetArmLength = UKismetMathLibrary::Clamp( Len, 300, 5000);
 	}
 }
 

@@ -113,8 +113,8 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 			//FVector CursorFVec = HitResult.ImpactNormal;
 			//FRotator CursorR = CursorFVec.Rotation();
 			ATopDownCameraController* Controller = Cast<ATopDownCameraController>(PC);
-			float GridSnap = Controller && Controller->GetWorldController() ?
-				Controller->GetWorldController()->GetGridWorld()->TileSize : 200.0f;
+			float GridSnap = Controller ?
+				Controller->GetTileSize() : 200.0f;
 			FVector CursorL = HitResult.Location.GridSnap(GridSnap);
 			CursorL.Z = HitResult.Location.Z;
 			Cursor->SetWorldLocation(CursorL);
