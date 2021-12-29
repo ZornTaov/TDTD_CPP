@@ -215,6 +215,8 @@ void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType
 	//Remove from old Type
 	if(FloorComponents[OldTypeIndex]->InstanceBodies.IsValidIndex(Index))
 	{
+		// TODO: Temporary fix for LogNavigationDirtyArea warnings. but not proper solution....
+		FloorComponents[OldTypeIndex]->bNavigationRelevant = FloorComponents[OldTypeIndex]->bNavigationRelevant && FloorComponents[OldTypeIndex]->InstanceBodies.Num() > 1;
 		FloorComponents[OldTypeIndex]->RemoveInstance(Index);
 	}
 	//Add to new Type
