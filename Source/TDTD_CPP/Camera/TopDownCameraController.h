@@ -7,6 +7,8 @@
 #include "Units/BaseUnitCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "GridWorld/GridWorldController.h"
+#include "GridWorld/SelectionModeEnum.h"
+#include "UI/GameplayWidget.h"
 #include "TopDownCameraController.generated.h"
 
 UCLASS()
@@ -35,7 +37,16 @@ protected:
 	ADecalActor* SelectionDecal = nullptr;
 	UPROPERTY()
 	UMaterialInterface* ActionDecal;
+	UPROPERTY()
+	UGameplayWidget* GameplayWidget;
+	TSubclassOf<UGameplayWidget> GameplayWidgetClass;
 public:
+	UPROPERTY(BlueprintReadWrite)
+	FName CurrentInstalledObjectType;
+	UPROPERTY(BlueprintReadWrite)
+	ETileType CurrentTileType = ETileType::Ground;
+	UPROPERTY(BlueprintReadWrite)
+	EGwSelectionMode CurrentMode = EGwSelectionMode::Building;
 	AGridWorldController* GetWorldController() const;
 	void SetWorldController(AGridWorldController* const InWorldController);
 	float GetTileSize() const;
@@ -46,6 +57,8 @@ protected:
 	void OnRotateTiePressed();
 	void RotateTileUnderMouseCursor();
 	void OnRotateTieReleased();
+	void OnCancelOrExitPressed();
+	void OnCancelOrExitReleased();
 	virtual void SetupInputComponent() override;
 	// End PlayerController interface
 
@@ -67,7 +80,7 @@ protected:
 	void OnManipulateCameraRotReleased();
 
 	void StartDrag();
-	void EndDrag();
+	bool EndDrag();
 	/** Input handlers for SetDestination action. */
 	void OnInteractPressed();
 	void OnInteractReleased();
@@ -80,4 +93,7 @@ protected:
 	void PitchCamera(const float Axis);
 
 	TArray<ABaseUnitCharacter*>* GetSelectedUnits();
+	UFUNCTION(BlueprintCallable)
+	void DeselectUnits();
+	void WhileDragging();
 };

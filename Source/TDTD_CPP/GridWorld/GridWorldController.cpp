@@ -5,6 +5,7 @@
 
 #include "GridWorld.h"
 #include "VarDump.h"
+#include "WallStruct.h"
 #include "Camera/TopDownCameraController.h"
 
 // Sets default values
@@ -23,10 +24,15 @@ AGridWorldController::AGridWorldController()
 	WallsRootComponent->SetupAttachment(WorldRootComponent);
 	
 	static ConstructorHelpers::FObjectFinder<UDataTable> Tdt(TEXT("DataTable'/Game/Blueprints/TileInfoTable.TileInfoTable'"));
-    if (Tdt.Succeeded())
-    {
-	    FloorTileDataTable = Tdt.Object;
-    }
+	if (Tdt.Succeeded())
+	{
+		FloorTileDataTable = Tdt.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UDataTable> Wdt(TEXT("DataTable'/Game/Blueprints/WallInfoTable.WallInfoTable'"));
+	if (Wdt.Succeeded())
+	{
+		WallTileDataTable = Wdt.Object;
+	}
 }
 
 UGridWorld* AGridWorldController::GetGridWorld() const
@@ -38,7 +44,6 @@ void AGridWorldController::SetGridWorld(UGridWorld* const InWorld)
 {
 	this->World = InWorld;
 }
-
 
 // Called when the game starts or when spawned
 void AGridWorldController::BeginPlay()
@@ -73,8 +78,8 @@ void AGridWorldController::BeginPlay()
 void AGridWorldController::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	InitComponents(FloorComponents, FloorsRootComponent, FloorTileDataTable);
-	//InitComponents(WallComponents, WallsRootComponent, WallTileDataTable);
+	InitFloorComponents(FloorComponents, FloorsRootComponent, FloorTileDataTable);
+	InitWallComponents(WallComponents, WallsRootComponent, WallTileDataTable);
 	World->Init(ETileType::Ground);
 	ClearAllInstances();
 	InitInstance();
@@ -100,26 +105,53 @@ void AGridWorldController::InitInstance()
 				/*const uint8 WallType = static_cast<uint8>(Tile->GetWallType());
 				if (WallType && WallType < WallComponents.Num())
 				{
-					Tile->InstanceIndex = WallComponents[WallType]->AddInstance(TileTransform);
+					Tile->InstanceIndex = WallComponents[WallType]->AddWall(TileTransform);
 				}*/
 			}
 		}
 	}
 }
 
-void AGridWorldController::InitComponents(TArray<UInstancedStaticMeshComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const
+void AGridWorldController::InitFloorComponents(TArray<UInstancedStaticMeshComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const
 {
 	if (ParentComp->GetNumChildrenComponents() != 0)
 	{
-		TArray<FTileStruct*> OutRowArray;
-		Data->GetAllRows<FTileStruct>(TEXT("GridWorldController#InitComponents"),OutRowArray);
+		TArray<FTileStruct*> OutTileRowArray;
+		Data->GetAllRows<FTileStruct>(TEXT("GridWorldController#InitFloorComponents"),OutTileRowArray);
 		Components.SetNum(ParentComp->GetNumChildrenComponents());
 		for (int i = 0; i < ParentComp->GetNumChildrenComponents(); ++i)
 		{
 			UInstancedStaticMeshComponent* Child = Cast<UInstancedStaticMeshComponent>(ParentComp->GetChildComponent(i));
 			if(IsValid(Child))
 			{
-				Child->SetStaticMesh(OutRowArray[i]->Mesh);
+				Child->SetStaticMesh(OutTileRowArray[i]->Mesh);	
+				Components[i] = Child;
+			}
+		}
+	}
+}
+
+void AGridWorldController::InitWallComponents(TArray<UWallTypeComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const
+{
+	if (ParentComp->GetNumChildrenComponents() != 0)
+	{
+		TArray<FWallStruct*> OutWallRowArray;
+		Data->GetAllRows<FWallStruct>(TEXT("GridWorldController#InitWallComponents"),OutWallRowArray);
+		if (OutWallRowArray.Num() == 0)
+		{
+			return;
+		}
+		Components.SetNum(ParentComp->GetNumChildrenComponents());
+		for (int i = 0; i < ParentComp->GetNumChildrenComponents(); ++i)
+		{
+			UWallTypeComponent* Child = Cast<UWallTypeComponent>(ParentComp->GetChildComponent(i));
+			if(IsValid(Child))
+			{
+				Child->FillISM->SetStaticMesh(OutWallRowArray[i]->FillMesh);
+				Child->InnerCornerISM->SetStaticMesh(OutWallRowArray[i]->InnerCornerMesh);
+				Child->MiddleISM->SetStaticMesh(OutWallRowArray[i]->MiddleMesh);
+				Child->OuterCornerISM->SetStaticMesh(OutWallRowArray[i]->OuterCornerMesh);
+				Child->WallTypeName = Data->GetRowNames()[i];
 				Components[i] = Child;
 			}
 		}
@@ -133,7 +165,7 @@ void AGridWorldController::ClearAllInstances()
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
-void AGridWorldController::ClearInstances(TArray<UInstancedStaticMeshComponent*> &Components)
+void AGridWorldController::ClearInstances(TArray<UInstancedStaticMeshComponent*>& Components)
 {
 	for (UInstancedStaticMeshComponent*& Component : Components)
 	{
@@ -143,7 +175,7 @@ void AGridWorldController::ClearInstances(TArray<UInstancedStaticMeshComponent*>
 	}
 }
 
-void AGridWorldController::TileClicked(const FVector& Vector) const
+void AGridWorldController::TileClicked(const FVector& Vector, ETileType NewType) const
 {
 	FVector Pos = (Vector-GetActorLocation())/World->TileSize;
 	Pos.Z = (Vector.Z - GetActorLocation().Z)/World->TileThickness;
@@ -153,7 +185,11 @@ void AGridWorldController::TileClicked(const FVector& Vector) const
 		return;
 	}
 	// TODO: Temporary switch/case to rotate TileType
-	switch (Tile->GetType())
+	if (Tile->GetType() != NewType)
+	{
+		UpdateTile(Pos, NewType, Tile);
+	}
+	/*switch (Tile->GetType())
 	{
 	case ETileType::Ground:
 		UpdateTile(Pos, ETileType::Floor, Tile);
@@ -167,7 +203,7 @@ void AGridWorldController::TileClicked(const FVector& Vector) const
 	case ETileType::Empty: 
 	default:
 		checkNoEntry();
-	}
+	}*/
 }
 
 void AGridWorldController::TileRotate(const FVector& Vector) const
@@ -181,6 +217,34 @@ void AGridWorldController::TileRotate(const FVector& Vector) const
 	}
 	Tile->SetRot(Tile->GetRot()+FRotator(0,90,0));
 	UpdateTile(Pos, Tile->GetType(), Tile);
+}
+
+void AGridWorldController::InstallToTile(const FVector& Loc, FName InstalledObject)
+{
+	const UWallTypeComponent* WallPlacer = nullptr;
+	if (UWallTypeComponent** Res = WallComponents.FindByPredicate([InstalledObject](const UWallTypeComponent* WallType){return WallType->WallTypeName == InstalledObject;}))
+	{
+		WallPlacer = *Res;
+	}
+	if (IsValid(WallPlacer))
+	{
+		WallPlacer->AddWall(GetGridWorld(), Loc);
+	}
+	
+}
+
+void AGridWorldController::GetIndex(const FTile* TileData, const uint8 OldTypeIndex, int& Index) const
+{
+	for (int i = 0; i < FloorComponents[OldTypeIndex]->GetInstanceCount(); ++i)
+	{
+		FTransform Transform;
+		FloorComponents[OldTypeIndex]->GetInstanceTransform(i, Transform);
+		if (Transform.GetLocation().Equals(TileData->GetWorldPos()))
+		{
+			Index = i;
+			break;
+		}
+	}
 }
 
 void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType NewType) const
@@ -202,21 +266,12 @@ void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType
 	}
 	//Get correct InstanceIndex
 	int Index = -1;
-	for (int i = 0; i < FloorComponents[OldTypeIndex]->GetInstanceCount(); ++i)
-	{
-		FTransform Transform;
-		FloorComponents[OldTypeIndex]->GetInstanceTransform(i, Transform);
-		if ((Transform.GetLocation()).Equals(TileData->GetWorldPos()))
-		{
-			Index = i;
-			break;
-		}
-	}
+	GetIndex(TileData, OldTypeIndex, Index);
 	//Remove from old Type
 	if(FloorComponents[OldTypeIndex]->InstanceBodies.IsValidIndex(Index))
 	{
 		// TODO: Temporary fix for LogNavigationDirtyArea warnings. but not proper solution....
-		FloorComponents[OldTypeIndex]->bNavigationRelevant = FloorComponents[OldTypeIndex]->bNavigationRelevant && FloorComponents[OldTypeIndex]->InstanceBodies.Num() > 1;
+		//FloorComponents[OldTypeIndex]->bNavigationRelevant = FloorComponents[OldTypeIndex]->bNavigationRelevant && FloorComponents[OldTypeIndex]->InstanceBodies.Num() > 1;
 		FloorComponents[OldTypeIndex]->RemoveInstance(Index);
 	}
 	//Add to new Type
@@ -235,6 +290,7 @@ FTile* AGridWorldController::UpdateTile(const int X, const int Y, const int Z, c
 	{
 		Tile = World->GetTileAt(X, Y, Z);
 	}
+	//turn into a callback
 	OnTileTypeChanged(*Tile, NewType);
 	Tile->SetType(NewType);
 	return Tile;

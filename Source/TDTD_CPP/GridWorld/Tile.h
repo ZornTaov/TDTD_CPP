@@ -6,7 +6,10 @@
 #include "Engine/DataTable.h"
 #include "Tile.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogTile, Log, All);
 
+
+class UInstalledObject;
 class UGridWorld;
 
 UENUM(BlueprintType)
@@ -23,6 +26,8 @@ struct FTileStruct : public FTableRowBase
 	UStaticMesh* Mesh = nullptr;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	float MovementSpeed = 1.0f;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UTexture* Icon = nullptr;
 };
 
 /**
@@ -46,6 +51,8 @@ protected:
 	FTransform Pos = FTransform::Identity;
 
 public:
+	UPROPERTY()
+	UInstalledObject* InstalledObject = nullptr;
 	FTransform& GetPos();
 	ETileType GetType() const;
 	void SetType(ETileType InType);
@@ -54,5 +61,6 @@ public:
 	void SetPos(const FVector& InPos);
 	FRotator GetRot() const;
 	void SetRot(const FRotator& InRot);
+	bool PlaceObject(UInstalledObject* Obj);
 };
 

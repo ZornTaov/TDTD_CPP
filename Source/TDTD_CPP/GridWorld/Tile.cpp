@@ -3,6 +3,9 @@
 
 #include "Tile.h"
 #include "GridWorld.h"
+#include "InstalledObject.h"
+
+DEFINE_LOG_CATEGORY(LogTile);
 
 FTile::FTile(UGridWorld* Gw, const int X, const int Y, const int Z)
 {
@@ -64,4 +67,23 @@ FRotator FTile::GetRot() const
 void FTile::SetRot(const FRotator& InRot)
 {
 	this->Pos.SetRotation(InRot.Quaternion());
+}
+
+bool FTile::PlaceObject(UInstalledObject* Obj)
+{
+	if (Obj == nullptr)
+	{
+		//uninstall current object
+		InstalledObject = nullptr;
+		return true;
+	}
+	if (InstalledObject != nullptr)
+	{
+		//already has installed object
+		UE_LOG(LogTile, Warning, TEXT("Trying to assign an installed object to a tile that has one!"));
+		return false;
+	}
+	// install new object
+	InstalledObject = Obj;
+	return true;
 }

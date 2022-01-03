@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Tile.h"
+#include "WallTypeComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
 #include "GridWorldController.generated.h"
@@ -25,6 +26,7 @@ protected:
 public:
 	UGridWorld* GetGridWorld() const;
 	void SetGridWorld(UGridWorld* const InWorld);
+	void InstallToTile(const FVector& Loc, FName InstalledObject);
 protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WorldRootComponent;
@@ -35,14 +37,19 @@ protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WallsRootComponent;
 	
+	UPROPERTY(Instanced, NoClear)
+	USceneComponent* InstalledObjectComponent;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
 	TArray<UInstancedStaticMeshComponent*> FloorComponents;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
-	TArray<UInstancedStaticMeshComponent*> WallComponents;
+	TArray<UWallTypeComponent*> WallComponents;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UDataTable* FloorTileDataTable = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UDataTable* WallTileDataTable = nullptr;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
@@ -56,10 +63,12 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	
-	void InitComponents(TArray<UInstancedStaticMeshComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const;
+	void InitFloorComponents(TArray<UInstancedStaticMeshComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const;
+	void InitWallComponents(TArray<UWallTypeComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const;
 	void InitInstance();
 	void ClearAllInstances();
-	void ClearInstances(TArray<UInstancedStaticMeshComponent*> &Components);
-	void TileClicked(const FVector& Vector) const;
+	void ClearInstances(TArray<UInstancedStaticMeshComponent*>& Components);
+	void TileClicked(const FVector& Vector, ETileType NewType) const;
 	void TileRotate(const FVector& Vector) const;
+	void GetIndex(const FTile* TileData, uint8 OldTypeIndex, int& Index) const;
 };

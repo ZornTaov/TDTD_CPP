@@ -13,7 +13,6 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
-#include "DrawDebugHelpers.h"
 #include "TopDownCameraController.h"
 #include "GridWorld/GridWorld.h"
 

@@ -10,10 +10,14 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "VarDump.h"
+#include "Blueprint/UserWidget.h"
 #include "Engine/DecalActor.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GridWorld/GridWorld.h"
+#include "GridWorld/SelectionDecalActor.h"
+#include "GridWorld/SelectionModeEnum.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "UI/GameplayWidget.h"
 
 template<typename T>
 void FindAllActors(UWorld* World, TArray<T*>& Out)
@@ -36,18 +40,23 @@ ATopDownCameraController::ATopDownCameraController()
 	{
 		ActionDecal = DecalMaterialAsset.Object;
 	}
+	static ConstructorHelpers::FClassFinder<UGameplayWidget> WidgetClass(TEXT("/Game/Hud/GwEditorWidget"));
+	if (WidgetClass.Succeeded())
+	{
+		this->GameplayWidgetClass = WidgetClass.Class;
+	}
 }
 
 void ATopDownCameraController::BeginPlay()
 {
 	Super::BeginPlay();
-	SelectionDecal = GetWorld()->SpawnActor<ADecalActor>(DragStartPosition, FRotator());
+	SelectionDecal = GetWorld()->SpawnActor<ASelectionDecalActor>(DragStartPosition, FRotator());
 	if (SelectionDecal)
 	{
 		SelectionDecal->SetDecalMaterial(ActionDecal);
-		SelectionDecal->GetDecal()->DecalSize = FVector(100.0f);
-		SelectionDecal->SetActorHiddenInGame(true);
 	}
+	GameplayWidget = CreateWidget<UGameplayWidget>(this, this->GameplayWidgetClass);
+	GameplayWidget->AddToViewport();
 	//FindAllActors(GetWorld(), SelectedUnits);
 	//FString MyActorName = GetActorLabel();
 	//VARDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
@@ -86,6 +95,18 @@ TArray<ABaseUnitCharacter*>* ATopDownCameraController::GetSelectedUnits()
 	return &SelectedUnits;
 }
 
+void ATopDownCameraController::DeselectUnits()
+{
+	if (SelectedUnits.Num() > 0)
+	{
+		for (auto Unit : SelectedUnits)
+		{
+			Unit->SelectionCursor->SetVisibility(false);
+		}
+	}
+	SelectedUnits.Empty();
+}
+
 void ATopDownCameraController::PlayerTick(const float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
@@ -108,48 +129,7 @@ void ATopDownCameraController::PlayerTick(const float DeltaTime)
 	}
 	if (bIsDragging)
 	{
-		FHitResult Hit;
-		GetHitResultUnderCursor(ECC_Camera, false, Hit);
-
-		if (Hit.bBlockingHit)
-		{
-			// TODO: check if in "build mode" instead
-			if (SelectedUnits.Num() <= 0)
-			{
-				if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
-				{
-					DragEndPosition = Hit.Location.GridSnap(GetTileSize());
-				}
-			}
-		}
-		if (SelectionDecal)
-		{
-			int StartX = FMath::FloorToInt(DragStartPosition.X);
-			int EndX = FMath::FloorToInt(DragEndPosition.X);
-			if(EndX < StartX)
-			{
-				const int Tmp = EndX;
-				EndX = StartX;
-				StartX = Tmp;
-			}
-
-			int StartY = FMath::FloorToInt(DragStartPosition.Y);
-			int EndY = FMath::FloorToInt(DragEndPosition.Y);
-			if(EndY < StartY)
-			{
-				const int Tmp = EndY;
-				EndY = StartY;
-				StartY = Tmp;
-			}
-			const float Z = (StartX - EndX)*0.005f - 1.05f;
-			const float Y = (StartY - EndY)*0.005f - 1.05f;
-			SelectionDecal->SetActorTransform(
-				FTransform(
-					FRotator(-90,0,0).Quaternion(),
-					(DragStartPosition+DragEndPosition)/2,
-					FVector(2, Y, Z)
-					));
-		}
+		WhileDragging();
 	}
 }
 
@@ -161,7 +141,11 @@ void ATopDownCameraController::SetupInputComponent()
 	InputComponent->BindAction("Interact", IE_Pressed, this,
 		&ATopDownCameraController::OnInteractPressed);
 	InputComponent->BindAction("Interact", IE_Released, this,
-		&ATopDownCameraController::OnInteractReleased);
+	&ATopDownCameraController::OnInteractReleased);
+	InputComponent->BindAction("CancelOrExit", IE_Pressed, this,
+		&ATopDownCameraController::OnCancelOrExitPressed);
+	InputComponent->BindAction("CancelOrExit", IE_Released, this,
+		&ATopDownCameraController::OnCancelOrExitReleased);
 	InputComponent->BindAction("RotateTile", IE_Pressed, this,
 		&ATopDownCameraController::OnRotateTiePressed);
 	InputComponent->BindAction("RotateTile", IE_Released, this,
@@ -216,38 +200,55 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 		{
 			if(GEngine)
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Clicked %s"), *Hit.Actor->GetFName().ToString()));
-			if (Hit.Actor->IsA(ABaseUnitCharacter::StaticClass()))
-			{
-				ABaseUnitCharacter* Unit = Cast<ABaseUnitCharacter>(Hit.Actor);
-				if (SelectedUnits.Contains(Unit))
+			switch (CurrentMode) {
+			case EGwSelectionMode::Building:
+				if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 				{
-					SelectedUnits.Remove(Unit);
-					Unit->SelectionCursor->SetVisibility(false);
+					WorldController = Cast<AGridWorldController>(Hit.Actor);
+					for (FVector Loc : SelectedTilesLocations)
+					{
+						WorldController->TileClicked(Loc,this->CurrentTileType);
+					}
+					SelectedTilesLocations.Empty();
 				}
-				else
+				break;
+			case EGwSelectionMode::Installing:
+				if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+				{				
+					WorldController = Cast<AGridWorldController>(Hit.Actor);
+					for (FVector Loc : SelectedTilesLocations)
+					{
+						WorldController->InstallToTile(Loc,this->CurrentInstalledObjectType);
+					}
+					SelectedTilesLocations.Empty();
+				}
+				break;
+			case EGwSelectionMode::Unit:				
+				if (Hit.Actor->IsA(ABaseUnitCharacter::StaticClass()))
 				{
-					SelectedUnits.Add(Unit);
-					Unit->SelectionCursor->SetVisibility(true);
+					ABaseUnitCharacter* Unit = Cast<ABaseUnitCharacter>(Hit.Actor);
+					if (SelectedUnits.Contains(Unit))
+					{
+						SelectedUnits.Remove(Unit);
+						Unit->SelectionCursor->SetVisibility(false);
+					}
+					else
+					{
+						SelectedUnits.Add(Unit);
+						Unit->SelectionCursor->SetVisibility(true);
+					}
+					//UPDATEDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
 				}
-				//UPDATEDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
-			}
-			else if (SelectedUnits.Num() > 0)
-			{
-				FVector CursorL = Hit.ImpactPoint.GridSnap(GetTileSize());
-				CursorL.Z = Hit.ImpactPoint.Z;
-				// We hit something, move there
-				SetNewMoveDestination(CursorL);
-			}
-			else if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
-			{
-				WorldController = Cast<AGridWorldController>(Hit.Actor);
-				
-				WorldController = Cast<AGridWorldController>(Hit.Actor);
-				for (FVector Loc : SelectedTilesLocations)
+				else if (SelectedUnits.Num() > 0)
 				{
-					WorldController->TileClicked(Loc);
+					FVector CursorL = Hit.ImpactPoint.GridSnap(GetTileSize());
+					CursorL.Z = Hit.ImpactPoint.Z;
+					// We hit something, move there
+					SetNewMoveDestination(CursorL);
 				}
-				SelectedTilesLocations.Empty();
+				break;
+			default:
+				checkNoEntry();
 			}
 		}
 	}
@@ -285,7 +286,7 @@ void ATopDownCameraController::SetNewMoveDestination(const FVector DestLocation)
 			// We need to issue move command only if far enough in order for walk animation to play correctly
 			if ((Distance > 120.0f))
 			{
-				Controller->MoveToLocation(Pos, 50, true, true,
+				Controller->MoveToLocation(Pos, 5, true, true,
 					false, false, nullptr, true);
 				//UAIBlueprintHelperLibrary::SimpleMoveToLocation(Controller, pos);
 			}
@@ -301,7 +302,7 @@ void ATopDownCameraController::RotateTileUnderMouseCursor()
 
 	if (Hit.bBlockingHit)
 	{
-		if (SelectedUnits.Num() <= 0)
+		if (CurrentMode == EGwSelectionMode::Building)
 		{
 			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
@@ -312,6 +313,7 @@ void ATopDownCameraController::RotateTileUnderMouseCursor()
 	}
 }
 
+#pragma region CursorDrag
 void ATopDownCameraController::StartDrag()
 {
 	FHitResult Hit;
@@ -319,24 +321,92 @@ void ATopDownCameraController::StartDrag()
 
 	if (Hit.bBlockingHit)
 	{
-		// TODO: check if in "build mode" instead
-		if (SelectedUnits.Num() <= 0)
-		{
+		bool Acted = false;
+		switch (CurrentMode) {
+		case EGwSelectionMode::Installing:
+		case EGwSelectionMode::Building:
 			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
 				DragStartPosition = Hit.Location.GridSnap(GetTileSize());
-				bIsDragging = true;
-				if (SelectionDecal)
-				{
-					SelectionDecal->SetActorHiddenInGame(false);
-				}
+				Acted = true;
+			}
+			break;
+		case EGwSelectionMode::Unit: 
+			DragStartPosition = Hit.Location;
+			Acted = true;
+			break;
+		default:
+			checkNoEntry();
+		}
+		if (Acted)
+		{
+			bIsDragging = true;
+			if (SelectionDecal)
+			{
+				SelectionDecal->SetActorHiddenInGame(false);
 			}
 		}
+		
 	}
 }
 
-void ATopDownCameraController::EndDrag()
+void ATopDownCameraController::WhileDragging()
 {
+	FHitResult Hit;
+	GetHitResultUnderCursor(ECC_Camera, false, Hit);
+
+	if (Hit.bBlockingHit)
+	{
+		switch (CurrentMode) {
+		case EGwSelectionMode::Installing:
+		case EGwSelectionMode::Building:
+			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+			{
+				DragEndPosition = Hit.Location.GridSnap(GetTileSize());
+			}
+			break;
+		case EGwSelectionMode::Unit: 
+			DragEndPosition = Hit.Location;
+			break;
+		default: ;
+		}
+	}
+	if (SelectionDecal)
+	{
+		int StartX = FMath::FloorToInt(DragStartPosition.X);
+		int EndX = FMath::FloorToInt(DragEndPosition.X);
+		if(EndX < StartX)
+		{
+			const int Tmp = EndX;
+			EndX = StartX;
+			StartX = Tmp;
+		}
+
+		int StartY = FMath::FloorToInt(DragStartPosition.Y);
+		int EndY = FMath::FloorToInt(DragEndPosition.Y);
+		if(EndY < StartY)
+		{
+			const int Tmp = EndY;
+			EndY = StartY;
+			StartY = Tmp;
+		}
+		const float Z = (StartX - EndX)*0.005f - (CurrentMode == EGwSelectionMode::Unit ? 0.0f : 1.05f);
+		const float Y = (StartY - EndY)*0.005f - (CurrentMode == EGwSelectionMode::Unit ? 0.0f : 1.05f);
+		SelectionDecal->SetActorTransform(
+			FTransform(
+				FRotator(-90,0,0).Quaternion(),
+				(DragStartPosition+DragEndPosition)/2,
+				FVector(2, Y, Z)
+			));
+	}
+}
+
+bool ATopDownCameraController::EndDrag()
+{
+	if (!bIsDragging)
+	{
+		return false;
+	}
 	bIsDragging = false;
 	if (SelectionDecal)
 	{
@@ -360,20 +430,60 @@ void ATopDownCameraController::EndDrag()
 		EndY = StartY;
 		StartY = Tmp;
 	}
-
-	for (int X = StartX; X <= EndX; X+=GetTileSize())
+	switch (CurrentMode)
 	{
-		for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
+	case EGwSelectionMode::Building:
 		{
-			SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z));
+			for (int X = StartX; X <= EndX; X+=GetTileSize())
+			{
+				for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
+				{
+					SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z));
+				}
+			}
+	
+			return false;
 		}
+	case EGwSelectionMode::Installing:
+		{
+			for (int X = StartX; X <= EndX; X+=GetTileSize())
+			{
+				for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
+				{
+					if (X == StartX || X == EndX || Y == StartY || Y == EndY)
+					{
+						SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z));
+					}
+				}
+			}
+	
+			return false;
+		}
+	case EGwSelectionMode::Unit:
+		{
+			const int Current = SelectedUnits.Num();
+			TArray<AActor*> OverlappedActors;
+			SelectionDecal->GetOverlappingActors(OverlappedActors, ABaseUnitCharacter::StaticClass());
+			for (AActor* OverlappedActor : OverlappedActors)
+			{
+				SelectedUnits.AddUnique(Cast<ABaseUnitCharacter>(OverlappedActor));
+				Cast<ABaseUnitCharacter>(OverlappedActor)->SelectionCursor->SetVisibility(true);
+			}
+	
+			return Current != SelectedUnits.Num();
+		}
+	default:
+		checkNoEntry();
 	}
+	return false;
 	/*if(GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,
 			FString::Printf(TEXT("Selected from %d,%d to %d,%d Count: %d"), StartX, StartY, EndX, EndY, SelectedTilesLocations.Num()));*/
 
 }
+#pragma endregion CursorDrag
 
+#pragma region OnPressedReleased
 void ATopDownCameraController::OnManipulateCameraPressed()
 {
 	bManipulateCamera = true;
@@ -405,18 +515,35 @@ void ATopDownCameraController::OnInteractReleased()
 {
 	// clear flag to indicate we should stop updating the destination
 	BInteractUnderMouseCursor = false;
-	EndDrag();
-	InteractUnderMouseCursor();
+	if(!EndDrag())
+		InteractUnderMouseCursor();
 }
 
 void ATopDownCameraController::OnRotateTiePressed()
 {
+	RotateTileUnderMouseCursor();
 }
 
 void ATopDownCameraController::OnRotateTieReleased()
 {
-	RotateTileUnderMouseCursor();
 }
+
+void ATopDownCameraController::OnCancelOrExitPressed()
+{
+	if (bIsDragging)
+	{
+		bIsDragging = false;
+		if (SelectionDecal)
+		{
+			SelectionDecal->SetActorHiddenInGame(true);
+		}
+	}
+}
+
+void ATopDownCameraController::OnCancelOrExitReleased()
+{
+}
+#pragma endregion OnPressedReleased
 
 #pragma region Camera
 void ATopDownCameraController::MoveCamera(const FVector Vec) const

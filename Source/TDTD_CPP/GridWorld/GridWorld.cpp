@@ -41,3 +41,15 @@ FTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
 	return Layer->GetTileAt(X, Y);
 }
 
+TArray<FTile*>* UGridWorld::GetNeighborTiles(const FVector IndexPos)
+{
+	TArray<FTile*>* NeighborTiles{};
+	for (int y = -1; y <= 1; ++y)
+	{
+		for (int x = -1; x <= 1; ++x)
+		{
+			NeighborTiles->Add(this->GetTileAt(FVector(x, y, 0) + IndexPos));
+		}
+	}
+	return NeighborTiles;
+}

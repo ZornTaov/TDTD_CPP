@@ -31,7 +31,8 @@ public class TDTD_CPP : ModuleRules
 	        "HeadMountedDisplay",
 	        "NavigationSystem",
 	        "AIModule", 
-	        "VarDump"/*,
+	        "VarDump",
+	        "UMG"/*,
 	        "ProceduralMeshComponent"*/
         });
     }
