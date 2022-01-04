@@ -15,24 +15,34 @@ UCLASS(Blueprintable, BlueprintType)
 class TDTD_CPP_API UIconButtonWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	explicit UIconButtonWidget(const FObjectInitializer& ObjectInitializer);
-	
+
 public:
+	explicit UIconButtonWidget(const FObjectInitializer& ObjectInitializer);
+	UFUNCTION()
+	void OnButtonClicked();
+
 	virtual void NativeConstruct() override;
-	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	virtual void NativeOnInitialized() override;
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedEvent, ETileType, Type, FName, IOName);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, BlueprintAssignable, BlueprintCallable,
+		meta=(DisplayName="On Clicked Event", Category="Default", MultiLine="true", OverrideNativeName="OnClickedEvent"
+		))
+	FOnClickedEvent OnClickedEvent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidget))
 	UImage* Icon = nullptr;
-	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidget))
 	UButton* IconButton = nullptr;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterial* ChromaKeyedMat;
-	UPROPERTY(BlueprintReadWrite, BlueprintSetter=SetTexture)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, BlueprintSetter=SetTexture)
 	UTexture* Texture = nullptr;
 	UFUNCTION(BlueprintCallable)
 	void SetTexture(UTexture* NewTexture);
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ETileType Type;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName InstalledObjectName;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FColor ChromaKeyColor = FColor::Magenta;
 };
