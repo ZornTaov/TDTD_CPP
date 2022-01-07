@@ -23,11 +23,12 @@ public:
 	UInstancedStaticMeshComponent* OuterCornerISM;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
 	TArray<UInstancedStaticMeshComponent*> WallSubComponents;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FName WallTypeName;
 public:
 	// Sets default values for this component's properties
 	UWallTypeComponent();
-
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

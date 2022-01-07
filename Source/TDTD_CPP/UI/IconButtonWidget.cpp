@@ -22,8 +22,9 @@ UIconButtonWidget::UIconButtonWidget(const FObjectInitializer& ObjectInitializer
 void UIconButtonWidget::OnButtonClicked()
 {
 	OnClickedEvent.Broadcast(Type, InstalledObjectName);
-	UE_LOG(LogTemp, Display, TEXT("%s"), *GetFName().ToString());
-
+	OnModeClickedEvent.Broadcast(this);
+	UE_LOG(LogTemp, Verbose, TEXT("Clicked: %s"), *GetFName().ToString());
+	return;
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
 	ATopDownCameraController* TopDownCameraController = Cast<ATopDownCameraController>(PlayerController);
 	if (TopDownCameraController == nullptr)
@@ -86,6 +87,7 @@ void UIconButtonWidget::SetTexture(UTexture* NewTexture)
 	if (Icon)
 	{
 		MaterialInstanceDynamic->SetTextureParameterValue(FName("Icon"), Texture);
+		MaterialInstanceDynamic->SetVectorParameterValue(FName("ChromaKey"), ChromaKeyColor);
 		Icon->SetBrushFromMaterial(MaterialInstanceDynamic);
 	}
 }

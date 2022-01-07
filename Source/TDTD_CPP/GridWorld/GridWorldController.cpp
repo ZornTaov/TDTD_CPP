@@ -3,7 +3,9 @@
 
 #include "GridWorldController.h"
 
+#include "DrawDebugHelpers.h"
 #include "GridWorld.h"
+#include "InstalledObject.h"
 #include "VarDump.h"
 #include "WallStruct.h"
 #include "Camera/TopDownCameraController.h"
@@ -160,14 +162,25 @@ void AGridWorldController::InitWallComponents(TArray<UWallTypeComponent*>& Compo
 
 void AGridWorldController::ClearAllInstances()
 {
-	ClearInstances(FloorComponents);
-	//ClearInstances(WallComponents);
+	ClearTileInstances(FloorComponents);
+	ClearWallInstances(WallComponents);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
-void AGridWorldController::ClearInstances(TArray<UInstancedStaticMeshComponent*>& Components)
+void AGridWorldController::ClearTileInstances(TArray<UInstancedStaticMeshComponent*>& Components)
 {
 	for (UInstancedStaticMeshComponent*& Component : Components)
+	{
+		if(Component == nullptr) continue;
+		if(IsValid(Component))
+			Component->ClearInstances();
+	}
+}
+
+// ReSharper disable once CppMemberFunctionMayBeStatic
+void AGridWorldController::ClearWallInstances(TArray<UWallTypeComponent*> Components)
+{
+	for (UWallTypeComponent*& Component : Components)
 	{
 		if(Component == nullptr) continue;
 		if(IsValid(Component))
@@ -184,26 +197,10 @@ void AGridWorldController::TileClicked(const FVector& Vector, ETileType NewType)
 	{
 		return;
 	}
-	// TODO: Temporary switch/case to rotate TileType
 	if (Tile->GetType() != NewType)
 	{
 		UpdateTile(Pos, NewType, Tile);
 	}
-	/*switch (Tile->GetType())
-	{
-	case ETileType::Ground:
-		UpdateTile(Pos, ETileType::Floor, Tile);
-		break;
-	case ETileType::Floor:
-		UpdateTile(Pos, ETileType::Ramp, Tile);
-		break;
-	case ETileType::Ramp:
-		UpdateTile(Pos, ETileType::Ground, Tile);
-		break;
-	case ETileType::Empty: 
-	default:
-		checkNoEntry();
-	}*/
 }
 
 void AGridWorldController::TileRotate(const FVector& Vector) const
@@ -219,18 +216,39 @@ void AGridWorldController::TileRotate(const FVector& Vector) const
 	UpdateTile(Pos, Tile->GetType(), Tile);
 }
 
-void AGridWorldController::InstallToTile(const FVector& Loc, FName InstalledObject)
+void AGridWorldController::InstallToTile(const FVector& Loc, FName InstalledObjectName, bool Remove)
 {
+	FVector Pos = (Loc-GetActorLocation())/World->TileSize;
+	Pos.Z = (Loc.Z - GetActorLocation().Z)/World->TileThickness;
 	const UWallTypeComponent* WallPlacer = nullptr;
-	if (UWallTypeComponent** Res = WallComponents.FindByPredicate([InstalledObject](const UWallTypeComponent* WallType){return WallType->WallTypeName == InstalledObject;}))
+	UWallTypeComponent** Res = WallComponents.FindByPredicate([InstalledObjectName](const UWallTypeComponent* WallType){return WallType->WallTypeName == InstalledObjectName;});
+	if (Res && *Res)
 	{
 		WallPlacer = *Res;
 	}
 	if (IsValid(WallPlacer))
 	{
-		WallPlacer->AddWall(GetGridWorld(), Loc);
+		FTile* TileAt = World->GetTileAt(Pos);
+		if (!Remove)
+		{
+			UInstalledObject* Proto = UInstalledObject::CreatePrototype(InstalledObjectName);
+			UInstalledObject::PlaceInstance(Proto,TileAt);
+			WallPlacer->AddWall(GetGridWorld(), Pos);
+		}
+		else
+		{
+			TileAt->PlaceObject(nullptr);
+			WallPlacer->RemoveWall(GetGridWorld(),Pos);
+		}
 	}
-	
+	else
+	{
+		FTile* TileAt = World->GetTileAt(Pos);
+		if (TileAt && TileAt->InstalledObject)
+		{
+			InstallToTile(Loc, TileAt->InstalledObject->ObjectType, true);
+		}
+	}
 }
 
 void AGridWorldController::GetIndex(const FTile* TileData, const uint8 OldTypeIndex, int& Index) const
@@ -301,5 +319,32 @@ FTile* AGridWorldController::UpdateTile(const int X, const int Y, const int Z, c
 void AGridWorldController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//DrawTileDebug();
+}
 
+void AGridWorldController::DrawDebug(FVector Pos, FString Str)
+{
+	FColor DrawColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f).ToFColor(true);
+	float DrawDuration = 0.0f;
+	bool DrawShadow = true;
+	DrawDebugString(GetWorld(), Pos, *Str, nullptr, DrawColor, DrawDuration, DrawShadow);
+}
+
+void AGridWorldController::DrawTileDebug()
+{
+	for (int x = 0; x < World->Width; ++x)
+	{
+		for (int y = 0; y < World->Height; ++y)
+		{
+			for (int z = 0; z < World->Depth; ++z)
+			{
+				FVector Pos = FVector(x,y,z);
+				FTile* Tile = World->GetTileAt(Pos);
+				DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100) + GetActorLocation(), FString::Printf(
+							  TEXT("Index:%s\nTileType:%s\nInstalledType:%s"), *Pos.ToCompactString(),
+							  *UEnum::GetValueAsString<ETileType>(Tile->GetType()),
+							  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT(""))));
+			}
+		}		
+	}
 }

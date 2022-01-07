@@ -99,7 +99,7 @@ void ATopDownCameraController::DeselectUnits()
 {
 	if (SelectedUnits.Num() > 0)
 	{
-		for (auto Unit : SelectedUnits)
+		for (const auto Unit : SelectedUnits)
 		{
 			Unit->SelectionCursor->SetVisibility(false);
 		}

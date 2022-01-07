@@ -30,6 +30,16 @@ UWallTypeComponent::UWallTypeComponent()
 	// ...
 }
 
+void UWallTypeComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	// Destroy ISM's anyways
+	for (auto Component : this->WallSubComponents)
+	{
+		Component->DestroyComponent();
+	}
+}
+
 
 // Called when the game starts
 void UWallTypeComponent::BeginPlay()
@@ -53,35 +63,36 @@ void UWallTypeComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UWallTypeComponent::AddWall(UGridWorld* World, const FVector& InstanceLocation, const bool Propagate) const
 {
-	TArray<FTile*>* Tiles = World->GetNeighborTiles(InstanceLocation);
-	TMap<EWallQuadrant, EWallSubTileType> WallSubTiles = FWallStruct::GetSubTileTypes(*Tiles);
+	TArray<FTile*> Tiles = World->GetNeighborTiles(InstanceLocation);
+	const FVector CenterLocation = Tiles[static_cast<int8>(ETileDirection::Center)]->GetWorldPos();
+	TMap<EWallQuadrant, EWallSubTileType> WallSubTiles = FWallStruct::GetSubTileTypes(Tiles);
 	for (const EWallQuadrant Quadrant : TEnumRange<EWallQuadrant>())
 	{
 		switch (WallSubTiles[Quadrant]) {
 		case Fill:
 			FillISM->AddInstance(FTransform(
 				FWallStruct::GetQuadrantRotation(Quadrant),
-				FWallStruct::GetQuadrantOffset(Quadrant) + InstanceLocation));
+				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case InnerCorner:
 			InnerCornerISM->AddInstance(FTransform(
 				FWallStruct::GetQuadrantRotation(Quadrant),
-				FWallStruct::GetQuadrantOffset(Quadrant) + InstanceLocation));
+				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case Side:
 			MiddleISM->AddInstance(FTransform(
-				FWallStruct::GetQuadrantRotation(Quadrant),
-				FWallStruct::GetQuadrantOffset(Quadrant) + InstanceLocation));
+				FWallStruct::GetQuadrantRotation(Quadrant) - FRotator(0,90,0),
+				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case SideFlipped:
 			MiddleISM->AddInstance(FTransform(
-				FWallStruct::GetQuadrantRotation(Quadrant) - FRotator(0,90,0),
-				FWallStruct::GetQuadrantOffset(Quadrant) + InstanceLocation));
+				FWallStruct::GetQuadrantRotation(Quadrant),
+				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case OuterCorner:
 			OuterCornerISM->AddInstance(FTransform(
 				FWallStruct::GetQuadrantRotation(Quadrant),
-				FWallStruct::GetQuadrantOffset(Quadrant) + InstanceLocation));
+				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		default:
 			checkNoEntry();
@@ -103,14 +114,17 @@ void UWallTypeComponent::AddWalls(UGridWorld* World, const TArray<FVector>& Inst
 
 void UWallTypeComponent::UpdateNeighborWalls(UGridWorld* World, const FVector& InstanceLocation) const
 {
-	TArray<FTile*> Tiles = *World->GetNeighborTiles(InstanceLocation);
-	TArray<FVector> TileLocations;
+	TArray<FTile*> Tiles = World->GetNeighborTiles(InstanceLocation);
+	TArray<FVector> TilesToUpdate;
 	for (const FTile* Tile : Tiles)
 	{
-		RemoveWall(World, Tile->GetWorldPos(), false);
-		TileLocations.Add(Tile->GetWorldPos());
+		if (Tile && Tile->InstalledObject != nullptr)
+		{
+			RemoveWall(World, Tile->GetIndexPos(), false);
+			TilesToUpdate.Add(Tile->GetIndexPos());
+		}
 	}
-	AddWalls(World, TileLocations, false);
+	AddWalls(World, TilesToUpdate, false);
 }
 
 void UWallTypeComponent::RemoveWall(UGridWorld* World, const FVector InstanceLocation, const bool Propagate) const
@@ -138,12 +152,13 @@ TArray<int> UWallTypeComponent::GetIndex(const FTile* TileData, const uint8 OldT
 		WallSubComponents[OldTypeIndex]->GetInstanceTransform(i, Transform);
 		for (const EWallQuadrant Quadrant : TEnumRange<EWallQuadrant>())
 		{
-			if (Transform.GetLocation().Equals(TileData->GetWorldPos() + FWallStruct::GetQuadrantOffset(Quadrant)))
+			if (Transform.GetLocation().Equals(TileData->GetWorldPos() + FWallStruct::GetQuadrantOffset(Quadrant), 10))
 			{
 				Indexes.Add(i);
 			}
 		}
 	}
+	Algo::Sort(Indexes,[](int A, int B){return A > B;});
 	return Indexes;
 }
 void UWallTypeComponent::ClearInstances()

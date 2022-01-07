@@ -10,11 +10,11 @@
  * 
  */
 UCLASS()
-class TDTD_CPP_API UInstalledObject : public UPrimaryDataAsset
+class TDTD_CPP_API UInstalledObject : public UObject
 {
 	GENERATED_BODY()
-	UPROPERTY()
-	FTile Tile;
+	//UPROPERTY()
+	FTile* Tile;
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Info")
 	FName ObjectType;
@@ -25,14 +25,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Info")
 	int Height;
 
-	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	/*virtual FPrimaryAssetId GetPrimaryAssetId() const override
 	{
 		return FPrimaryAssetId(TEXT("Installed Object"), GetFName());
-	}
+	}*/
 
 	UInstalledObject() {  }
 	
 	static UInstalledObject* CreatePrototype(const FName Type, const float Cost = 1.0f, const int W = 1, const int H = 1);
 
-	static UInstalledObject* PlaceInstance(const UInstalledObject* Proto, const FTile* T);
+	static UInstalledObject* PlaceInstance(const UInstalledObject* Proto, FTile* T);
 };

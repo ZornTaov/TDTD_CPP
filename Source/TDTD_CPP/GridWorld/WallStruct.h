@@ -28,7 +28,7 @@ enum class EWallQuadrant : uint8
 	SouthEast = 2,
 	SouthWest = 3
 };
-ENUM_RANGE_BY_VALUES(EWallQuadrant, EWallQuadrant::NorthWest, EWallQuadrant::SouthEast);
+ENUM_RANGE_BY_COUNT(EWallQuadrant, 4);
 
 UENUM()
 enum EWallSubTileType

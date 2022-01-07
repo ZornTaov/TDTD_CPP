@@ -13,15 +13,15 @@ UInstalledObject* UInstalledObject::CreatePrototype(const FName Type, const floa
 	return Obj;
 }
 
-UInstalledObject* UInstalledObject::PlaceInstance(const UInstalledObject* Proto, const FTile* T)
+UInstalledObject* UInstalledObject::PlaceInstance(const UInstalledObject* Proto, FTile* T)
 {
 	UInstalledObject* Obj = NewObject<UInstalledObject>();
 	Obj->ObjectType = Proto->ObjectType;
 	Obj->MovementCost = Proto->MovementCost;
 	Obj->Width = Proto->Width;
 	Obj->Height = Proto->Height;
-	Obj->Tile = *T;
-	if(Obj->Tile.PlaceObject(Obj))
+	Obj->Tile = T;
+	if(Obj->Tile->PlaceObject(Obj))
 	{
 		return nullptr;
 	}

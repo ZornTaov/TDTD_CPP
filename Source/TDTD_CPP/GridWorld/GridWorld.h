@@ -35,5 +35,5 @@ public:
 	FTile* GetTileAt(FVector Pos);
 	FTile* GetTileAt(int X, int Y, int Z);
 	
-	TArray<FTile*>* GetNeighborTiles(const FVector IndexPos);
+	TArray<FTile*> GetNeighborTiles(const FVector IndexPos);
 };

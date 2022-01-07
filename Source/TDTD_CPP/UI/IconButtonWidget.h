@@ -24,11 +24,16 @@ public:
 	virtual void NativeConstruct() override;
 	virtual void NativeOnInitialized() override;
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedEvent, ETileType, Type, FName, IOName);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnModeClickedEvent, UIconButtonWidget*, Widget);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, BlueprintAssignable, BlueprintCallable,
 		meta=(DisplayName="On Clicked Event", Category="Default", MultiLine="true", OverrideNativeName="OnClickedEvent"
 		))
 	FOnClickedEvent OnClickedEvent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, BlueprintAssignable, BlueprintCallable,
+		meta=(DisplayName="On Mode Clicked Event", Category="Default", MultiLine="true", OverrideNativeName="OnModeClickedEvent"
+		))
+	FOnModeClickedEvent OnModeClickedEvent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidget))
 	UImage* Icon = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidget))
@@ -44,5 +49,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName InstalledObjectName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FColor ChromaKeyColor = FColor::Magenta;
+	FLinearColor ChromaKeyColor = FColor::Magenta;
 };

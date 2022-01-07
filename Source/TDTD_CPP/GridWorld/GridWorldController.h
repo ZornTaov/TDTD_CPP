@@ -26,7 +26,7 @@ protected:
 public:
 	UGridWorld* GetGridWorld() const;
 	void SetGridWorld(UGridWorld* const InWorld);
-	void InstallToTile(const FVector& Loc, FName InstalledObject);
+	void InstallToTile(const FVector& Loc, FName InstalledObjectName, bool Remove = false);
 protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WorldRootComponent;
@@ -50,6 +50,7 @@ protected:
 	class UDataTable* FloorTileDataTable = nullptr;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UDataTable* WallTileDataTable = nullptr;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
@@ -57,6 +58,7 @@ protected:
 
 	FTile* UpdateTile(FVector Pos, const ETileType& NewType, FTile* Tile = nullptr) const;
 	FTile* UpdateTile(int X, int Y, int Z, ETileType NewType, FTile* InTile = nullptr) const;
+	void DrawTileDebug();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -66,9 +68,12 @@ public:
 	void InitFloorComponents(TArray<UInstancedStaticMeshComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const;
 	void InitWallComponents(TArray<UWallTypeComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const;
 	void InitInstance();
+	void ClearWallInstances(TArray<UWallTypeComponent*> Array);
 	void ClearAllInstances();
-	void ClearInstances(TArray<UInstancedStaticMeshComponent*>& Components);
+	void ClearTileInstances(TArray<UInstancedStaticMeshComponent*>& Components);
 	void TileClicked(const FVector& Vector, ETileType NewType) const;
 	void TileRotate(const FVector& Vector) const;
 	void GetIndex(const FTile* TileData, uint8 OldTypeIndex, int& Index) const;
+
+	void DrawDebug(FVector Pos, FString Str);
 };
