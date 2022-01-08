@@ -40,10 +40,10 @@ protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* InstalledObjectComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
+	UPROPERTY(BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
 	TArray<UInstancedStaticMeshComponent*> FloorComponents;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
+	UPROPERTY(BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
 	TArray<UWallTypeComponent*> WallComponents;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

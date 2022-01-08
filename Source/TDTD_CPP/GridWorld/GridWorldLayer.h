@@ -19,7 +19,7 @@ struct TDTD_CPP_API FGridWorldLayer
 protected:
 	UPROPERTY()
 	UGridWorld* World = nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, NoClear, EditFixedSize)
+	UPROPERTY(BlueprintReadWrite, NoClear, EditFixedSize)
 	TArray<UTile*> Tiles;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int Depth = -1;

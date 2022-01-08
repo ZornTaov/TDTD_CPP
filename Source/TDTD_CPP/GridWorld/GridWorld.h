@@ -14,7 +14,7 @@ class TDTD_CPP_API UGridWorld final : public UActorComponent
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, NoClear, EditFixedSize)
+	UPROPERTY(BlueprintReadWrite, NoClear, EditFixedSize)
 	TArray<FGridWorldLayer> Layers;
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
