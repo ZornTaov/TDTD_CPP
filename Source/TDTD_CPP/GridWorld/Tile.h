@@ -44,19 +44,18 @@ struct TDTD_CPP_API FTile
 {
 	GENERATED_BODY()
 	FTile() = default;
-	FTile(UGridWorld* Gw, int X, int Y, int Z);
-	static FTile* Make(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
+	void Init(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ETileType Type = ETileType::Empty;
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	//EWallType WallType = EWallType::Empty;
-	UPROPERTY(BlueprintReadOnly)
-	UGridWorld* World = nullptr;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	FTransform Pos = FTransform::Identity;
 
 public:
+	UPROPERTY(BlueprintReadOnly)
+	UGridWorld* World = nullptr;
 	UPROPERTY()
 	UInstalledObject* InstalledObject = nullptr;
 	FTransform& GetPos();

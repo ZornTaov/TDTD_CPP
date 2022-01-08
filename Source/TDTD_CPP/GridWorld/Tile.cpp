@@ -7,19 +7,11 @@
 
 DEFINE_LOG_CATEGORY(LogTile);
 
-FTile::FTile(UGridWorld* Gw, const int X, const int Y, const int Z)
+void FTile::Init(UGridWorld* Gw, const int X, const int Y, const int Z, const ETileType InitType)
 {
 	this->Pos.SetLocation(FVector(X,Y,Z));
 	this->World = Gw;
-	if(Gw)
-		Gw->TileCount++;
-}
-
-FTile* FTile::Make(UGridWorld* Gw, const int X, const int Y, const int Z, const ETileType InitType)
-{
-	FTile* t = new FTile(Gw, X, Y, Z);
-	t->SetType(InitType);
-	return t;
+	this->SetType(InitType);
 }
 
 ETileType FTile::GetType() const
