@@ -39,12 +39,11 @@ struct FTileStruct : public FTableRowBase
 /**
  * 
  */
-USTRUCT(BlueprintType, Blueprintable)
-struct TDTD_CPP_API FTile
+UCLASS(BlueprintType, Blueprintable)
+class TDTD_CPP_API UTile : public UObject
 {
 	GENERATED_BODY()
-	FTile() = default;
-	void Init(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
+	UTile() = default;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ETileType Type = ETileType::Empty;
@@ -54,6 +53,7 @@ protected:
 	FTransform Pos = FTransform::Identity;
 
 public:
+	void Init(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
 	UPROPERTY(BlueprintReadOnly)
 	UGridWorld* World = nullptr;
 	UPROPERTY()

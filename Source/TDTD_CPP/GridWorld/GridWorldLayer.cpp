@@ -17,13 +17,16 @@ void FGridWorldLayer::Init(UGridWorld* Gw, const int Index, const ETileType Init
 	{
 		for (int X = 0; X < this->World->Width; ++X)
 		{
-			if(Tiles[X + Y * InnerWidth].World == nullptr)
-				Tiles[X + Y * InnerWidth].Init(Gw, X, Y, Index, InitType);
+			if(Tiles[X + Y * InnerWidth] == nullptr)
+			{
+				Tiles[X + Y * InnerWidth] = NewObject<UTile>(World);
+				Tiles[X + Y * InnerWidth]->Init(Gw, X, Y, Index, InitType);
+			}
 		}
 	}
 }
 
-FTile* FGridWorldLayer::GetTileAt(const int X, const int Y)
+UTile* FGridWorldLayer::GetTileAt(const int X, const int Y)
 {
 	if (Depth == -1)
 	{
@@ -35,7 +38,7 @@ FTile* FGridWorldLayer::GetTileAt(const int X, const int Y)
 	{
 		if (Y >= 0 && Y < World->Height)
 		{
-			FTile* Tile = &Tiles[X + Y * InnerWidth];
+			UTile* Tile = Tiles[X + Y * InnerWidth];
 			return Tile;
 		}
 	}

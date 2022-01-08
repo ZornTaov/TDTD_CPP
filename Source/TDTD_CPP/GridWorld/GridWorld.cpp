@@ -25,12 +25,12 @@ FGridWorldLayer* UGridWorld::GetLayer(const int Index)
 	return nullptr;
 }
 
-FTile* UGridWorld::GetTileAt(const FVector Pos)
+UTile* UGridWorld::GetTileAt(const FVector Pos)
 {
 	return GetTileAt(Pos.X, Pos.Y, Pos.Z);
 }
 
-FTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
+UTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
 {
 	FGridWorldLayer* Layer = GetLayer(Z);
 	if (!Layer)
@@ -41,9 +41,9 @@ FTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
 	return Layer->GetTileAt(X, Y);
 }
 
-TArray<FTile*> UGridWorld::GetNeighborTiles(const FVector IndexPos)
+TArray<UTile*> UGridWorld::GetNeighborTiles(const FVector IndexPos)
 {
-	TArray<FTile*> NeighborTiles;
+	TArray<UTile*> NeighborTiles;
 	for (int y = -1; y <= 1; ++y)
 	{
 		for (int x = -1; x <= 1; ++x)

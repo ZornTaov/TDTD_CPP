@@ -63,7 +63,7 @@ void UWallTypeComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UWallTypeComponent::AddWall(UGridWorld* World, const FVector& InstanceLocation, const bool Propagate) const
 {
-	TArray<FTile*> Tiles = World->GetNeighborTiles(InstanceLocation);
+	TArray<UTile*> Tiles = World->GetNeighborTiles(InstanceLocation);
 	const FVector CenterLocation = Tiles[static_cast<int8>(ETileDirection::Center)]->GetWorldPos();
 	TMap<EWallQuadrant, EWallSubTileType> WallSubTiles = FWallStruct::GetSubTileTypes(Tiles);
 	for (const EWallQuadrant Quadrant : TEnumRange<EWallQuadrant>())
@@ -114,9 +114,9 @@ void UWallTypeComponent::AddWalls(UGridWorld* World, const TArray<FVector>& Inst
 
 void UWallTypeComponent::UpdateNeighborWalls(UGridWorld* World, const FVector& InstanceLocation) const
 {
-	TArray<FTile*> Tiles = World->GetNeighborTiles(InstanceLocation);
+	TArray<UTile*> Tiles = World->GetNeighborTiles(InstanceLocation);
 	TArray<FVector> TilesToUpdate;
-	for (const FTile* Tile : Tiles)
+	for (const UTile* Tile : Tiles)
 	{
 		if (Tile && Tile->InstalledObject != nullptr)
 		{
@@ -129,7 +129,7 @@ void UWallTypeComponent::UpdateNeighborWalls(UGridWorld* World, const FVector& I
 
 void UWallTypeComponent::RemoveWall(UGridWorld* World, const FVector InstanceLocation, const bool Propagate) const
 {
-	const FTile* Tile = World->GetTileAt(InstanceLocation);
+	const UTile* Tile = World->GetTileAt(InstanceLocation);
 	for (int t = 0; t < WallSubComponents.Num(); ++t)
 	{
 		TArray<int> Indexes = GetIndex(Tile, t);
@@ -143,7 +143,7 @@ void UWallTypeComponent::RemoveWall(UGridWorld* World, const FVector InstanceLoc
 		UpdateNeighborWalls(World, InstanceLocation);
 	}
 }
-TArray<int> UWallTypeComponent::GetIndex(const FTile* TileData, const uint8 OldTypeIndex) const
+TArray<int> UWallTypeComponent::GetIndex(const UTile* TileData, const uint8 OldTypeIndex) const
 {
 	TArray<int> Indexes;
 	for (int i = 0; i < WallSubComponents[OldTypeIndex]->GetInstanceCount(); ++i)

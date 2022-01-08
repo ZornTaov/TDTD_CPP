@@ -13,7 +13,7 @@ UInstalledObject* UInstalledObject::CreatePrototype(const FName Type, const floa
 	return Obj;
 }
 
-UInstalledObject* UInstalledObject::PlaceInstance(const UInstalledObject* Proto, FTile* T)
+UInstalledObject* UInstalledObject::PlaceInstance(const UInstalledObject* Proto, UTile* T)
 {
 	UInstalledObject* Obj = NewObject<UInstalledObject>();
 	Obj->ObjectType = Proto->ObjectType;

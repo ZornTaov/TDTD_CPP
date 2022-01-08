@@ -57,8 +57,8 @@ struct FWallStruct : public FTableRowBase
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UTexture* Icon = nullptr;
 
-	static bool IsConnected(TArray<FTile*>& Tiles, ETileDirection TileDirection);
-	static TMap<EWallQuadrant, EWallSubTileType> GetSubTileTypes(TArray<FTile*>& Tiles);
+	static bool IsConnected(TArray<UTile*>& Tiles, ETileDirection TileDirection);
+	static TMap<EWallQuadrant, EWallSubTileType> GetSubTileTypes(TArray<UTile*>& Tiles);
 	static FVector GetQuadrantOffset(EWallQuadrant Quadrant);
 	static FRotator GetQuadrantRotation(EWallQuadrant Quadrant);
 };

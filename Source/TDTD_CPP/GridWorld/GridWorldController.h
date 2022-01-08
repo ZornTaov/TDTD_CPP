@@ -54,10 +54,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
-	void OnTileTypeChanged(const FTile& TileDataRef, ETileType NewType) const;
+	void OnTileTypeChanged(const UTile* TileDataRef, ETileType NewType) const;
 
-	FTile* UpdateTile(FVector Pos, const ETileType& NewType, FTile* Tile = nullptr) const;
-	FTile* UpdateTile(int X, int Y, int Z, ETileType NewType, FTile* InTile = nullptr) const;
+	UTile* UpdateTile(FVector Pos, const ETileType& NewType, UTile* Tile = nullptr) const;
+	UTile* UpdateTile(int X, int Y, int Z, ETileType NewType, UTile* InTile = nullptr) const;
 	void DrawTileDebug();
 public:	
 	// Called every frame
@@ -73,7 +73,7 @@ public:
 	void ClearTileInstances(TArray<UInstancedStaticMeshComponent*>& Components);
 	void TileClicked(const FVector& Vector, ETileType NewType) const;
 	void TileRotate(const FVector& Vector) const;
-	void GetIndex(const FTile* TileData, uint8 OldTypeIndex, int& Index) const;
+	void GetIndex(const UTile* TileData, uint8 OldTypeIndex, int& Index) const;
 
 	void DrawDebug(FVector Pos, FString Str);
 };

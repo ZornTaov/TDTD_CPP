@@ -32,8 +32,8 @@ public:
 	void Init(ETileType InitType = ETileType::Empty);
 	FVector Size() const {return FVector(Width, Height, Depth);}
 	FGridWorldLayer* GetLayer(int Index);
-	FTile* GetTileAt(FVector Pos);
-	FTile* GetTileAt(int X, int Y, int Z);
+	UTile* GetTileAt(FVector Pos);
+	UTile* GetTileAt(int X, int Y, int Z);
 	
-	TArray<FTile*> GetNeighborTiles(const FVector IndexPos);
+	TArray<UTile*> GetNeighborTiles(const FVector IndexPos);
 };

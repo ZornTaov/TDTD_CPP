@@ -37,10 +37,10 @@ TMap<EWallQuadrant, TArray<ETileDirection>> FWallStruct::SubTileMap =
 	};
 #pragma endregion SubMapMap
 
-bool FWallStruct::IsConnected(TArray<FTile*>& Tiles, ETileDirection TileDirection)
+bool FWallStruct::IsConnected(TArray<UTile*>& Tiles, ETileDirection TileDirection)
 {
-	const FTile* ThisTile = Tiles[static_cast<int8>(ETileDirection::Center)];
-	const FTile* OtherTile = Tiles[static_cast<uint8>(TileDirection)];
+	const UTile* ThisTile = Tiles[static_cast<int8>(ETileDirection::Center)];
+	const UTile* OtherTile = Tiles[static_cast<uint8>(TileDirection)];
 	if (!ThisTile || !OtherTile) return false;
 	if (!ThisTile->InstalledObject || !OtherTile->InstalledObject) return false;
 	if (ThisTile->InstalledObject->ObjectType == "" || OtherTile->InstalledObject->ObjectType == "") return false;
@@ -49,7 +49,7 @@ bool FWallStruct::IsConnected(TArray<FTile*>& Tiles, ETileDirection TileDirectio
 	return ThisTile->InstalledObject->ObjectType == OtherTile->InstalledObject->ObjectType;
 }
 
-TMap<EWallQuadrant, EWallSubTileType> FWallStruct::GetSubTileTypes(TArray<FTile*>& Tiles)
+TMap<EWallQuadrant, EWallSubTileType> FWallStruct::GetSubTileTypes(TArray<UTile*>& Tiles)
 {
 
 	TMap<EWallQuadrant, EWallSubTileType> OutArray;

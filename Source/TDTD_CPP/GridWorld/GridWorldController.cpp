@@ -97,7 +97,7 @@ void AGridWorldController::InitInstance()
 		{
 			for (int y = 0; y < World->Size().Y; ++y)
 			{
-				const FTile* Tile = World->GetTileAt(x, y, z);
+				const UTile* Tile = World->GetTileAt(x, y, z);
 				TileTransform.SetLocation(FVector(x * World->TileSize, y * World->TileSize, z * World->TileThickness));
 				const uint8 Type = static_cast<uint8>(Tile->GetType());
 				if (Type && Type < FloorComponents.Num())
@@ -192,7 +192,7 @@ void AGridWorldController::TileClicked(const FVector& Vector, ETileType NewType)
 {
 	FVector Pos = (Vector-GetActorLocation())/World->TileSize;
 	Pos.Z = (Vector.Z - GetActorLocation().Z)/World->TileThickness;
-	FTile* Tile = World->GetTileAt(Pos);
+	UTile* Tile = World->GetTileAt(Pos);
 	if (!Tile)
 	{
 		return;
@@ -207,7 +207,7 @@ void AGridWorldController::TileRotate(const FVector& Vector) const
 {
 	FVector Pos = (Vector-GetActorLocation())/World->TileSize;
 	Pos.Z = (Vector.Z - GetActorLocation().Z)/World->TileThickness;
-	FTile* Tile = World->GetTileAt(Pos);
+	UTile* Tile = World->GetTileAt(Pos);
 	if (!Tile)
 	{
 		return;
@@ -228,7 +228,7 @@ void AGridWorldController::InstallWallToTile(const FVector& Loc, FName Installed
 	}
 	if (IsValid(WallPlacer))
 	{
-		FTile* TileAt = World->GetTileAt(Pos);
+		UTile* TileAt = World->GetTileAt(Pos);
 		if (!Remove)
 		{
 			UInstalledObject* Proto = UInstalledObject::CreatePrototype(InstalledObjectName);
@@ -243,7 +243,7 @@ void AGridWorldController::InstallWallToTile(const FVector& Loc, FName Installed
 	}
 	else
 	{
-		FTile* TileAt = World->GetTileAt(Pos);
+		UTile* TileAt = World->GetTileAt(Pos);
 		if (TileAt && TileAt->InstalledObject)
 		{
 			InstallWallToTile(Loc, TileAt->InstalledObject->ObjectType, true);
@@ -251,7 +251,7 @@ void AGridWorldController::InstallWallToTile(const FVector& Loc, FName Installed
 	}
 }
 
-void AGridWorldController::GetIndex(const FTile* TileData, const uint8 OldTypeIndex, int& Index) const
+void AGridWorldController::GetIndex(const UTile* TileData, const uint8 OldTypeIndex, int& Index) const
 {
 	for (int i = 0; i < FloorComponents[OldTypeIndex]->GetInstanceCount(); ++i)
 	{
@@ -265,9 +265,8 @@ void AGridWorldController::GetIndex(const FTile* TileData, const uint8 OldTypeIn
 	}
 }
 
-void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType NewType) const
+void AGridWorldController::OnTileTypeChanged(const UTile* TileData, ETileType NewType) const
 {
-	const FTile* TileData = &TileDataRef;
 	ETileType OldType = TileData->GetType();
 	const uint8 OldTypeIndex = static_cast<uint8>(OldType);
 	if (!FloorComponents.IsValidIndex(OldTypeIndex))
@@ -296,20 +295,19 @@ void AGridWorldController::OnTileTypeChanged(const FTile& TileDataRef, ETileType
 	FloorComponents[NewTypeIndex]->AddInstance(FTransform(TileData->GetRot().Quaternion(), TileData->GetWorldPos()));
 }
 
-FTile* AGridWorldController::UpdateTile(const FVector Pos, const ETileType& NewType, FTile* Tile) const
+UTile* AGridWorldController::UpdateTile(const FVector Pos, const ETileType& NewType, UTile* Tile) const
 {
 	return UpdateTile(Pos.X, Pos.Y, Pos.Z, NewType, Tile);
 }
 
-FTile* AGridWorldController::UpdateTile(const int X, const int Y, const int Z, const ETileType NewType, FTile* InTile) const
+UTile* AGridWorldController::UpdateTile(const int X, const int Y, const int Z, const ETileType NewType, UTile* Tile) const
 {
-	FTile* Tile = InTile;
 	if (!Tile)
 	{
 		Tile = World->GetTileAt(X, Y, Z);
 	}
 	//turn into a callback
-	OnTileTypeChanged(*Tile, NewType);
+	OnTileTypeChanged(Tile, NewType);
 	Tile->SetType(NewType);
 	return Tile;
 }
@@ -339,7 +337,7 @@ void AGridWorldController::DrawTileDebug()
 			for (int z = 0; z < World->Depth; ++z)
 			{
 				FVector Pos = FVector(x,y,z);
-				FTile* Tile = World->GetTileAt(Pos);
+				UTile* Tile = World->GetTileAt(Pos);
 				DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100) + GetActorLocation(), FString::Printf(
 							  TEXT("Index:%s\nTileType:%s\nInstalledType:%s"), *Pos.ToCompactString(),
 							  *GetEnumName(Tile->GetType()),

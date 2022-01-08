@@ -20,7 +20,7 @@ protected:
 	UPROPERTY()
 	UGridWorld* World = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, NoClear, EditFixedSize)
-	TArray<FTile> Tiles;
+	TArray<UTile*> Tiles;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int Depth = -1;
 	int InnerWidth = 0;
@@ -31,6 +31,6 @@ public:
 	FGridWorldLayer() = default;
 
 	void Init(UGridWorld* Gw, int Index, ETileType InitType = ETileType::Empty);
-	FTile* GetTileAt(int X, int Y);
+	UTile* GetTileAt(int X, int Y);
 	
 };

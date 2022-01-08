@@ -45,7 +45,7 @@ public:
 	void AddWalls(UGridWorld* World, const TArray<FVector>& InstanceLocations, bool Propagate = true) const;
 	UFUNCTION(BlueprintCallable, Category = "Components|WallTypeComponent")
 	void RemoveWall(UGridWorld* World, const FVector InstanceLocation, const bool Propagate = true) const;
-	TArray<int> GetIndex(const FTile* TileData, uint8 OldTypeIndex) const;
+	TArray<int> GetIndex(const UTile* TileData, uint8 OldTypeIndex) const;
 	UFUNCTION(BlueprintCallable, Category="Components|WallTypeComponent")
 	void ClearInstances();
 	UFUNCTION(BlueprintCallable, Category = "Components|WallTypeComponent")
