@@ -342,7 +342,7 @@ void AGridWorldController::DrawTileDebug()
 				FTile* Tile = World->GetTileAt(Pos);
 				DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100) + GetActorLocation(), FString::Printf(
 							  TEXT("Index:%s\nTileType:%s\nInstalledType:%s"), *Pos.ToCompactString(),
-							  *UEnum::GetValueAsString<ETileType>(Tile->GetType()),
+							  *GetEnumName(Tile->GetType()),
 							  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT(""))));
 			}
 		}		
