@@ -220,33 +220,51 @@ void AGridWorldController::InstallWallToTile(const FVector& Loc, FName Installed
 {
 	FVector Pos = (Loc-GetActorLocation())/World->TileSize;
 	Pos.Z = (Loc.Z - GetActorLocation().Z)/World->TileThickness;
+	UTile* TileAt = World->GetTileAt(Pos);
 	const UWallTypeComponent* WallPlacer = nullptr;
-	UWallTypeComponent** Res = WallComponents.FindByPredicate([InstalledObjectName](const UWallTypeComponent* WallType){return WallType->WallTypeName == InstalledObjectName;});
+	FName NameToCheck;
+	//no tile means no wall
+	if (!IsValid(TileAt))
+		return;
+	
+	if (IsValid(TileAt->InstalledObject))
+	{
+		//existing object, check it
+		if (TileAt->InstalledObject->ObjectType != InstalledObjectName || InstalledObjectName == FName("Empty"))
+		{
+			// different, for now change to it (especially if new type should be "empty")
+			NameToCheck = TileAt->InstalledObject->ObjectType;
+			Remove = true;
+		}
+		else
+		{
+			// same type, bail
+			return;
+		}
+	}
+	else
+	{
+		// should be a new installed object here
+		NameToCheck = InstalledObjectName;
+	}
+	UWallTypeComponent** Res = WallComponents.FindByPredicate([NameToCheck](const UWallTypeComponent* WallType){return WallType->WallTypeName == NameToCheck;});
 	if (Res && *Res)
 	{
 		WallPlacer = *Res;
 	}
 	if (IsValid(WallPlacer))
 	{
-		UTile* TileAt = World->GetTileAt(Pos);
-		if (!Remove)
-		{
-			UInstalledObject* Proto = UInstalledObject::CreatePrototype(InstalledObjectName);
-			UInstalledObject::PlaceInstance(Proto,TileAt);
-			WallPlacer->AddWall(GetGridWorld(), Pos);
-		}
-		else
+		
+		if (Remove || InstalledObjectName == FName("Empty"))
 		{
 			TileAt->PlaceObject(nullptr);
 			WallPlacer->RemoveWall(GetGridWorld(),Pos);
 		}
-	}
-	else
-	{
-		UTile* TileAt = World->GetTileAt(Pos);
-		if (TileAt && TileAt->InstalledObject)
+		else
 		{
-			InstallWallToTile(Loc, TileAt->InstalledObject->ObjectType, true);
+			UInstalledObject* Proto = UInstalledObject::CreatePrototype(NameToCheck);
+			UInstalledObject::PlaceInstance(Proto,TileAt);
+			WallPlacer->AddWall(GetGridWorld(), Pos);
 		}
 	}
 }

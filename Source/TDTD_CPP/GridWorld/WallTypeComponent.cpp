@@ -36,7 +36,8 @@ void UWallTypeComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 	// Destroy ISM's anyways
 	for (auto Component : this->WallSubComponents)
 	{
-		Component->DestroyComponent();
+		if(Component)
+			Component->DestroyComponent();
 	}
 }
 

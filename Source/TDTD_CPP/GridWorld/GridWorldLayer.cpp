@@ -17,8 +17,9 @@ void FGridWorldLayer::Init(UGridWorld* Gw, const int Index, const ETileType Init
 	{
 		for (int X = 0; X < this->World->Width; ++X)
 		{
-			if(Tiles[X + Y * InnerWidth] == nullptr)
+			if(Tiles[X + Y * InnerWidth] == nullptr || Tiles[X + Y * InnerWidth]->GetIndexPos() != FVector(X, Y, Depth))
 			{
+				//delete Tiles[X + Y * InnerWidth];
 				Tiles[X + Y * InnerWidth] = NewObject<UTile>(World);
 				Tiles[X + Y * InnerWidth]->Init(Gw, X, Y, Index, InitType);
 			}
@@ -38,7 +39,7 @@ UTile* FGridWorldLayer::GetTileAt(const int X, const int Y)
 	{
 		if (Y >= 0 && Y < World->Height)
 		{
-			UTile* Tile = Tiles[X + Y * InnerWidth];
+			UTile* Tile = Tiles[X + Y * World->Width];
 			return Tile;
 		}
 	}
