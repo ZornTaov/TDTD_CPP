@@ -26,7 +26,7 @@ protected:
 public:
 	UGridWorld* GetGridWorld() const;
 	void SetGridWorld(UGridWorld* const InWorld);
-	void InstallToTile(const FVector& Loc, FName InstalledObjectName, bool Remove = false);
+	void InstallWallToTile(const FVector& Loc, FName InstalledObjectName, bool Remove = false);
 protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WorldRootComponent;

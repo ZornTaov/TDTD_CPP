@@ -13,7 +13,6 @@ UCLASS()
 class TDTD_CPP_API UInstalledObject : public UObject
 {
 	GENERATED_BODY()
-	//UPROPERTY()
 	FTile* Tile;
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Info")
@@ -24,6 +23,8 @@ public:
 	int Width;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Info")
 	int Height;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Info")
+	bool LinksToNeighbor;
 
 	/*virtual FPrimaryAssetId GetPrimaryAssetId() const override
 	{

@@ -218,7 +218,7 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 					WorldController = Cast<AGridWorldController>(Hit.Actor);
 					for (FVector Loc : SelectedTilesLocations)
 					{
-						WorldController->InstallToTile(Loc,this->CurrentInstalledObjectType);
+						WorldController->InstallWallToTile(Loc,this->CurrentInstalledObjectType);
 					}
 					SelectedTilesLocations.Empty();
 				}

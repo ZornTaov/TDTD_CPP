@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable)
+UCLASS(BlueprintType, Blueprintable, hidecategories=(AssetUserData,Activation,Collision,Cooking))
 class TDTD_CPP_API UGridWorld final : public UActorComponent
 {
 	GENERATED_BODY()

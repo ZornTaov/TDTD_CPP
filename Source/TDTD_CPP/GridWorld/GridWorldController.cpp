@@ -216,7 +216,7 @@ void AGridWorldController::TileRotate(const FVector& Vector) const
 	UpdateTile(Pos, Tile->GetType(), Tile);
 }
 
-void AGridWorldController::InstallToTile(const FVector& Loc, FName InstalledObjectName, bool Remove)
+void AGridWorldController::InstallWallToTile(const FVector& Loc, FName InstalledObjectName, bool Remove)
 {
 	FVector Pos = (Loc-GetActorLocation())/World->TileSize;
 	Pos.Z = (Loc.Z - GetActorLocation().Z)/World->TileThickness;
@@ -246,7 +246,7 @@ void AGridWorldController::InstallToTile(const FVector& Loc, FName InstalledObje
 		FTile* TileAt = World->GetTileAt(Pos);
 		if (TileAt && TileAt->InstalledObject)
 		{
-			InstallToTile(Loc, TileAt->InstalledObject->ObjectType, true);
+			InstallWallToTile(Loc, TileAt->InstalledObject->ObjectType, true);
 		}
 	}
 }

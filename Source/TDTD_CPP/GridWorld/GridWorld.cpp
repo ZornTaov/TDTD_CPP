@@ -11,8 +11,8 @@ void UGridWorld::Init(const ETileType InitType)
 	Layers.SetNum(Depth);
 	for (int i = 0; i < Depth; ++i)
 	{
-		if(Layers[i].GetDepth() == -1 || Layers[i].GetDepth() != i)
-			Layers[i] = FGridWorldLayer(this, i, InitType);
+		if(Layers[i].GetDepth() == -1 || Layers[i].GetDepth() != i || Layers[i].IsWorldResized())
+			Layers[i].Init(this, i, InitType);
 	}
 }
 

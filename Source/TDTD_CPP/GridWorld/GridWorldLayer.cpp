@@ -5,22 +5,26 @@
 #include "GridWorld.h"
 #include "VarDump.h"
 
-
-int FGridWorldLayer::GetDepth() const
+void FGridWorldLayer::Init(UGridWorld* Gw, const int Index, const ETileType InitType)
 {
-	return Depth;
-}
-
-FGridWorldLayer::FGridWorldLayer(UGridWorld* Gw, const int Index, const ETileType InitType): World(Gw), Depth(Index)
-{
+	World = Gw; 
+	Depth = Index; 
+	InnerWidth = Gw->Width; 
+	InnerHeight = Gw->Height;
+	Tiles.SetNum(InnerHeight);
+	
 	for (int Y = 0; Y < this->World->Height; ++Y)
 	{
-		FTile2DArray TileRow;
+		FTile2DArray* TileRow = Tiles.IsValidIndex(Y) ? &Tiles[Y] : new FTile2DArray();
 		for (int X = 0; X < this->World->Width; ++X)
 		{
-			TileRow.Add(FTile::Make(Gw, X, Y, Index, InitType));
+			if(!TileRow->IsValidIndex(X))
+				TileRow->Add(FTile::Make(Gw, X, Y, Index, InitType));
 		}
-		Tiles.Add(TileRow);
+		// SetNum afterwards in case it needs to shrink
+		TileRow->SetNum(InnerWidth);
+		if (!Tiles.IsValidIndex(Y))
+			Tiles.EmplaceAt(Y, *TileRow);
 	}
 }
 
@@ -41,4 +45,14 @@ FTile* FGridWorldLayer::GetTileAt(const int X, const int Y)
 		}
 	}
 	return nullptr;
+}
+
+int FGridWorldLayer::GetDepth() const
+{
+	return Depth;
+}
+
+bool FGridWorldLayer::IsWorldResized() const
+{
+	return World->Height != InnerHeight || World->Width != InnerWidth;
 }

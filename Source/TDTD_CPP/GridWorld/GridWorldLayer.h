@@ -24,6 +24,16 @@ public:
 	void Add(const FTile* Tile) {
 		Ar.Add(*Tile);
 	}
+
+	void SetNum(TArray<FTile>::SizeType NewNum, bool bAllowShrinking = true)
+	{
+		Ar.SetNum(NewNum, bAllowShrinking);
+	}
+
+	bool IsValidIndex(TArray<FTile>::SizeType Index)
+	{
+		return Ar.IsValidIndex(Index);
+	}
 };
 /**
  * 
@@ -39,11 +49,14 @@ protected:
 	TArray<FTile2DArray> Tiles;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int Depth = -1;
+	int InnerWidth = 0;
+	int InnerHeight = 0;
 public:
 	int GetDepth() const;
+	bool IsWorldResized() const;
 	FGridWorldLayer() = default;
-	explicit FGridWorldLayer(UGridWorld* Gw, int Index, ETileType InitType = ETileType::Empty);
 
+	void Init(UGridWorld* Gw, int Index, ETileType InitType = ETileType::Empty);
 	FTile* GetTileAt(int X, int Y);
 	
 };
