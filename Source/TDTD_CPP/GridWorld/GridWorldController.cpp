@@ -197,7 +197,7 @@ void AGridWorldController::ClearWallInstances(TArray<UWallTypeComponent*> Compon
 
 void AGridWorldController::TileClicked(const FVector& Vector, ETileType NewType) const
 {
-	UTile* Tile = World->GetTileAtWorldPos(Vector);
+	UTile* Tile = World->GetTileAtWorldPos(Vector-GetActorLocation());
 	if (!Tile)
 	{
 		return;
@@ -210,7 +210,7 @@ void AGridWorldController::TileClicked(const FVector& Vector, ETileType NewType)
 
 void AGridWorldController::TileRotate(const FVector& Vector) const
 {
-	UTile* Tile = World->GetTileAtWorldPos(Vector);
+	UTile* Tile = World->GetTileAtWorldPos(Vector-GetActorLocation());
 	if (!Tile)
 	{
 		return;
