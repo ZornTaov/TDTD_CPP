@@ -3,7 +3,7 @@
 #include "TDCameraControllerComponent.h"
 
 #include "TopDownCameraCharacter.h"
-#include "TopDownCameraController.h"
+#include "TopDownController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -17,7 +17,7 @@ UTDCameraControllerComponent::UTDCameraControllerComponent()
 void UTDCameraControllerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	Controller = GetOwner<ATopDownCameraController>();
+	Controller = GetOwner<ATopDownController>();
 	CameraPawn = Controller->GetPawn<ATopDownCameraCharacter>();
 }
 

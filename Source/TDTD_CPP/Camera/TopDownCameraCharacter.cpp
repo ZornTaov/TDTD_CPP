@@ -12,7 +12,7 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
-#include "TopDownCameraController.h"
+#include "TopDownController.h"
 #include "GridWorld/GridWorld.h"
 
 ATopDownCameraCharacter::ATopDownCameraCharacter(const FObjectInitializer& ObjectInitializer)
@@ -97,7 +97,7 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 	else if (APlayerController* PC = Cast<APlayerController>(Parent->GetController()))
 	{
 		PC->GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
-		ATopDownCameraController* Controller = Cast<ATopDownCameraController>(PC);
+		ATopDownController* Controller = Cast<ATopDownController>(PC);
 		float GridSnap = Controller ?
 			Controller->GetTileSize() : 200.0f;
 		FVector CursorL = HitResult.Location.GridSnap(GridSnap);

@@ -3,7 +3,7 @@
 
 #include "UI/IconButtonWidget.h"
 #include "Blueprint/WidgetTree.h"
-#include "Camera/TopDownCameraController.h"
+#include "TopDownController.h"
 
 UIconButtonWidget::UIconButtonWidget(const FObjectInitializer& ObjectInitializer)
 	: UUserWidget(ObjectInitializer)
@@ -25,7 +25,7 @@ void UIconButtonWidget::OnButtonClicked()
 	UE_LOG(LogTemp, Verbose, TEXT("Clicked: %s"), *GetFName().ToString());
 	return;
 	/*APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	ATopDownCameraController* TopDownCameraController = Cast<ATopDownCameraController>(PlayerController);
+	ATopDownController* TopDownCameraController = Cast<ATopDownController>(PlayerController);
 	if (TopDownCameraController == nullptr)
 	{
 		return;

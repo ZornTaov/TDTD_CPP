@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "TopDownCameraController.h"
+#include "TopDownController.h"
 
 #include "AIController.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
@@ -19,7 +19,7 @@
 #include "GridWorld/SelectionModeEnum.h"
 #include "UI/GameplayWidget.h"
 
-ATopDownCameraController::ATopDownCameraController()
+ATopDownController::ATopDownController()
 {
 	bShowMouseCursor = true;
 	//DefaultMouseCursor = EMouseCursor::Crosshairs;
@@ -46,7 +46,7 @@ ATopDownCameraController::ATopDownCameraController()
 	}
 }
 
-void ATopDownCameraController::BeginPlay()
+void ATopDownController::BeginPlay()
 {
 	Super::BeginPlay();
 	SelectionDecal = GetWorld()->SpawnActor<ASelectionDecalActor>(DragStartPosition, FRotator());
@@ -65,36 +65,36 @@ void ATopDownCameraController::BeginPlay()
 	WorldController = Temp[0];*/
 }
 
-AGridWorldController* ATopDownCameraController::GetWorldController() const
+AGridWorldController* ATopDownController::GetWorldController() const
 {
 	return WorldController;
 }
 
-void ATopDownCameraController::SetWorldController(AGridWorldController* const InWorldController)
+void ATopDownController::SetWorldController(AGridWorldController* const InWorldController)
 {
 	this->WorldController = InWorldController;
 }
 
-float ATopDownCameraController::GetTileSize() const
+float ATopDownController::GetTileSize() const
 {
 	return GetWorldController() &&
 		GetWorldController()->GetGridWorld() ?
 			GetWorldController()->GetGridWorld()->TileWidth : 200.0f;
 }
 
-float ATopDownCameraController::GetTileThickness() const
+float ATopDownController::GetTileThickness() const
 {
 	return GetWorldController() &&
 		GetWorldController()->GetGridWorld() ?
 			GetWorldController()->GetGridWorld()->TileThickness : 200.0f;
 }
 
-TArray<ABaseUnitCharacter*>& ATopDownCameraController::GetSelectedUnits()
+TArray<ABaseUnitCharacter*>& ATopDownController::GetSelectedUnits()
 {
 	return SelectedUnits;
 }
 
-void ATopDownCameraController::DeselectUnits()
+void ATopDownController::DeselectUnits()
 {
 	if (SelectedUnits.Num() > 0)
 	{
@@ -106,7 +106,7 @@ void ATopDownCameraController::DeselectUnits()
 	SelectedUnits.Empty();
 }
 
-void ATopDownCameraController::PlayerTick(const float DeltaTime)
+void ATopDownController::PlayerTick(const float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
 	if (bIsDragging)
@@ -115,19 +115,19 @@ void ATopDownCameraController::PlayerTick(const float DeltaTime)
 	}
 }
 
-void ATopDownCameraController::SetupInputComponent()
+void ATopDownController::SetupInputComponent()
 {
 	// set up gameplay key bindings
 	Super::SetupInputComponent();
 
 	InputComponent->BindAction("Interact", IE_Pressed, this,
-		&ATopDownCameraController::OnInteractPressed);
+		&ATopDownController::OnInteractPressed);
 	InputComponent->BindAction("Interact", IE_Released, this,
-	&ATopDownCameraController::OnInteractReleased);
+	&ATopDownController::OnInteractReleased);
 	InputComponent->BindAction("CancelOrExit", IE_Pressed, this,
-		&ATopDownCameraController::OnCancelOrExitPressed);
+		&ATopDownController::OnCancelOrExitPressed);
 	InputComponent->BindAction("RotateTile", IE_Pressed, this,
-		&ATopDownCameraController::OnRotateTiePressed);
+		&ATopDownController::OnRotateTiePressed);
 
 	if (CameraController)
 	{
@@ -150,27 +150,27 @@ void ATopDownCameraController::SetupInputComponent()
 		InputComponent->BindAxis("Zoom", CameraController, &UTDCameraControllerComponent::ZoomCamera);
 	}
 	// support touch devices 
-	//InputComponent->BindTouch(IE_Pressed, this, &ATopDownCameraController::MoveToTouchLocation);
-	//InputComponent->BindTouch(IE_Repeat, this, &ATopDownCameraController::MoveToTouchLocation);
+	//InputComponent->BindTouch(IE_Pressed, this, &ATopDownController::MoveToTouchLocation);
+	//InputComponent->BindTouch(IE_Repeat, this, &ATopDownController::MoveToTouchLocation);
 
-	InputComponent->BindAction("ResetVR", IE_Pressed, this, &ATopDownCameraController::OnResetVR);
+	InputComponent->BindAction("ResetVR", IE_Pressed, this, &ATopDownController::OnResetVR);
 
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
-void ATopDownCameraController::OnResetVR()
+void ATopDownController::OnResetVR()
 {
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void ATopDownCameraController::OnWallInstallDone(UJob* Job, FName InstalledObjectType)
+void ATopDownController::OnWallInstallDone(UJob* Job, FName InstalledObjectType)
 {
 	Job->GetTile()->Jobs.Remove(Job);
 	this->GetWorldController()->InstallWallToTile(Job->GetTile(), InstalledObjectType);
 }
 
-void ATopDownCameraController::InteractUnderMouseCursor()
+void ATopDownController::InteractUnderMouseCursor()
 {
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
 	{
@@ -256,7 +256,7 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 	}
 }
 
-/*void ATopDownCameraController::MoveToTouchLocation(const ETouchIndex::Type FingerIndex, const FVector Location)
+/*void ATopDownController::MoveToTouchLocation(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
 	const FVector2D ScreenSpaceLocation(Location);
 
@@ -270,7 +270,7 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 	}
 }*/
 
-void ATopDownCameraController::SetNewMoveDestination(const FVector DestLocation)
+void ATopDownController::SetNewMoveDestination(const FVector DestLocation)
 {
 	int Counter = 0;
 	const float Sides = FMath::RoundToFloat(FMath::Sqrt(static_cast<float>(GetSelectedUnits().Num())));
@@ -298,7 +298,7 @@ void ATopDownCameraController::SetNewMoveDestination(const FVector DestLocation)
 }
 
 
-void ATopDownCameraController::RotateTileUnderMouseCursor() const
+void ATopDownController::RotateTileUnderMouseCursor() const
 {
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Camera, false, Hit);
@@ -317,7 +317,7 @@ void ATopDownCameraController::RotateTileUnderMouseCursor() const
 }
 
 #pragma region CursorDrag
-void ATopDownCameraController::StartDrag()
+void ATopDownController::StartDrag()
 {
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Camera, false, Hit);
@@ -353,7 +353,7 @@ void ATopDownCameraController::StartDrag()
 	}
 }
 
-void ATopDownCameraController::WhileDragging()
+void ATopDownController::WhileDragging()
 {
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Camera, false, Hit);
@@ -448,7 +448,7 @@ void ATopDownCameraController::WhileDragging()
 	}
 }
 
-bool ATopDownCameraController::EndDrag()
+bool ATopDownController::EndDrag()
 {
 	if (!bIsDragging)
 	{
@@ -533,14 +533,14 @@ bool ATopDownCameraController::EndDrag()
 #pragma endregion CursorDrag
 
 #pragma region OnPressedReleased
-void ATopDownCameraController::OnInteractPressed()
+void ATopDownController::OnInteractPressed()
 {
 	// set flag to keep updating destination until released
 	BInteractUnderMouseCursor = true;
 	StartDrag();
 }
 
-void ATopDownCameraController::OnInteractReleased()
+void ATopDownController::OnInteractReleased()
 {
 	// clear flag to indicate we should stop updating the destination
 	BInteractUnderMouseCursor = false;
@@ -549,12 +549,12 @@ void ATopDownCameraController::OnInteractReleased()
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void ATopDownCameraController::OnRotateTiePressed()
+void ATopDownController::OnRotateTiePressed()
 {
 	RotateTileUnderMouseCursor();
 }
 
-void ATopDownCameraController::OnCancelOrExitPressed()
+void ATopDownController::OnCancelOrExitPressed()
 {
 	if (bIsDragging)
 	{

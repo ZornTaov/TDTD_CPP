@@ -3,7 +3,7 @@
 #include "TDTD_CPPGameMode.h"
 
 #include "EngineUtils.h"
-#include "Camera/TopDownCameraController.h"
+#include "TopDownController.h"
 #include "Camera/TopDownCameraCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -15,7 +15,7 @@ void ATDTD_CPPGameMode::BeginPlay()
 ATDTD_CPPGameMode::ATDTD_CPPGameMode()
 {
 	// use our custom PlayerController class
-	PlayerControllerClass = ATopDownCameraController::StaticClass();
+	PlayerControllerClass = ATopDownController::StaticClass();
 
 	// set default pawn class to our Blueprinted character
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Blueprints/TopDownCameraCharacter"));

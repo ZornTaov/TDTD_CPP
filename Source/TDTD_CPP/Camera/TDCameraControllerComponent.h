@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "TopDownCameraCharacter.h"
-#include "TopDownCameraController.h"
+#include "TopDownController.h"
 #include "Components/ActorComponent.h"
 #include "TDCameraControllerComponent.generated.h"
 
@@ -22,7 +22,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	UPROPERTY()
-	ATopDownCameraController* Controller;
+	ATopDownController* Controller;
 	UPROPERTY()
 	ATopDownCameraCharacter* CameraPawn;
 

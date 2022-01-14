@@ -6,7 +6,7 @@
 #include "TDTDExtensionHelpers.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/HorizontalBox.h"
-#include "Camera/TopDownCameraController.h"
+#include "TopDownController.h"
 #include "GridWorld/SelectionModeStruct.h"
 #include "GridWorld/WallStruct.h"
 #include "Kismet/GameplayStatics.h"
@@ -105,7 +105,7 @@ void UGameplayWidget::AddWallButtons(UHorizontalBox* HorizontalBox)
 void UGameplayWidget::OnModeChangeClickedEvent(UIconButtonWidget* Widget)
 {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	ATopDownCameraController* TopDownCameraController = Cast<ATopDownCameraController>(PlayerController);
+	ATopDownController* TopDownCameraController = Cast<ATopDownController>(PlayerController);
 	if (TopDownCameraController == nullptr)
 	{
 		return;
@@ -160,7 +160,7 @@ void UGameplayWidget::OnModeChangeClickedEvent(UIconButtonWidget* Widget)
 void UGameplayWidget::OnTileClickedEvent(ETileType Type, FName IOName)
 {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	ATopDownCameraController* TopDownCameraController = Cast<ATopDownCameraController>(PlayerController);
+	ATopDownController* TopDownCameraController = Cast<ATopDownController>(PlayerController);
 	if (TopDownCameraController == nullptr)
 	{
 		return;
@@ -176,7 +176,7 @@ void UGameplayWidget::OnTileClickedEvent(ETileType Type, FName IOName)
 void UGameplayWidget::OnWallClickedEvent(ETileType Type, FName IOName)
 {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	ATopDownCameraController* TopDownCameraController = Cast<ATopDownCameraController>(PlayerController);
+	ATopDownController* TopDownCameraController = Cast<ATopDownController>(PlayerController);
 	if (TopDownCameraController == nullptr)
 	{
 		return;

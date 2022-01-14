@@ -9,7 +9,7 @@
 #include "TDTDExtensionHelpers.h"
 #include "VarDump.h"
 #include "WallStruct.h"
-#include "Camera/TopDownCameraController.h"
+#include "TopDownController.h"
 #include "JobSystem/JobSystem.h"
 
 // Sets default values
@@ -58,7 +58,7 @@ void AGridWorldController::SetGridWorld(UGridWorld* const InWorld)
 void AGridWorldController::BeginPlay()
 {
 	Super::BeginPlay();
-	ATopDownCameraController* Controller = Cast<ATopDownCameraController>(GetWorld()->GetFirstPlayerController());
+	ATopDownController* Controller = Cast<ATopDownController>(GetWorld()->GetFirstPlayerController());
 	if (Controller)
 	{
 		Controller->SetWorldController(this);

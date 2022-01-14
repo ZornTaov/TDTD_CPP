@@ -8,18 +8,18 @@
 #include "GridWorld/GridWorldController.h"
 #include "GridWorld/SelectionModeEnum.h"
 #include "UI/GameplayWidget.h"
-#include "TopDownCameraController.generated.h"
+#include "TopDownController.generated.h"
 
 class UTDCameraControllerComponent;
 class ASelectionDecalActor;
 UCLASS()
 // ReSharper disable once CppUE4CodingStandardNamingViolationWarning
-class ATopDownCameraController final : public APlayerController
+class ATopDownController final : public APlayerController
 {
 	GENERATED_BODY()
 
 public:
-	ATopDownCameraController();
+	ATopDownController();
 protected:
 	virtual void BeginPlay() override;
 	/** True if the controlled character should navigate to the mouse cursor. */
