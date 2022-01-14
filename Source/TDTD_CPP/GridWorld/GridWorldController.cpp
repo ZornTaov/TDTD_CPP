@@ -69,9 +69,9 @@ void AGridWorldController::BeginPlay()
 	    	
 			Params.Owner = this;
 			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			FVector Location = FVector(x, y, Layer)*World->TileSize;
+			FVector Location = FVector(x, y, Layer)*World->TileWidth;
 			ATileActor* TileActor = AActor::GetWorld()->SpawnActor<ATileActor>(Location, FRotator::ZeroRotator, Params);
-			//Tile_Data->Del.AddLambda([TileActor, this](FTile* Tile){OnTileTypeChanged(*Tile, this->FloorTileDataTable, TileActor);});
+			//Tile_Data->Del.AddLambda([TileActor, this](FTile* Tile){OnTileChanged(*Tile, this->FloorTileDataTable, TileActor);});
 			Tile_Data->SetType(ETileType::Floor);
 		}
 	}
@@ -98,8 +98,8 @@ void AGridWorldController::InitInstance()
 		{
 			for (int y = 0; y < World->Size().Y; ++y)
 			{
-				const UTile* Tile = World->GetTileAt(x, y, z);
-				TileTransform.SetLocation(FVector(x * World->TileSize, y * World->TileSize, z * World->TileThickness));
+				UTile* Tile = World->GetTileAt(x, y, z);
+				TileTransform.SetLocation(FVector(x * World->TileWidth, y * World->TileWidth, z * World->TileThickness));
 				const uint8 Type = static_cast<uint8>(Tile->GetType());
 				if (Type && Type < FloorComponents.Num())
 				{
@@ -191,43 +191,34 @@ void AGridWorldController::ClearWallInstances(TArray<UWallTypeComponent*> Compon
 
 void AGridWorldController::TileClicked(const FVector& Vector, ETileType NewType) const
 {
-	FVector Pos = (Vector-GetActorLocation())/World->TileSize;
-	Pos.Z = (Vector.Z - GetActorLocation().Z)/World->TileThickness;
-	UTile* Tile = World->GetTileAt(Pos);
+	UTile* Tile = World->GetTileAtWorldPos(Vector);
 	if (!Tile)
 	{
 		return;
 	}
 	if (Tile->GetType() != NewType)
 	{
-		UpdateTile(Pos, NewType, Tile);
+		UpdateTile(Tile->GetIndexPos(), NewType, Tile);
 	}
 }
 
 void AGridWorldController::TileRotate(const FVector& Vector) const
 {
-	FVector Pos = (Vector-GetActorLocation())/World->TileSize;
-	Pos.Z = (Vector.Z - GetActorLocation().Z)/World->TileThickness;
-	UTile* Tile = World->GetTileAt(Pos);
+	UTile* Tile = World->GetTileAtWorldPos(Vector);
 	if (!Tile)
 	{
 		return;
 	}
 	Tile->SetRot(Tile->GetRot()+FRotator(0,90,0));
-	UpdateTile(Pos, Tile->GetType(), Tile);
+	UpdateTile(Tile->GetIndexPos(), Tile->GetType(), Tile);
 }
 
-void AGridWorldController::InstallWallToTile(const FVector& Loc, FName InstalledObjectName, bool Remove)
+void AGridWorldController::InstallWallToTile(UTile* TileAt, const FName InstalledObjectName, bool Remove)
 {
-	FVector Pos = (Loc-GetActorLocation())/World->TileSize;
-	Pos.Z = (Loc.Z - GetActorLocation().Z)/World->TileThickness;
-	UTile* TileAt = World->GetTileAt(Pos);
-	const UWallTypeComponent* WallPlacer = nullptr;
 	FName NameToCheck;
 	//no tile means no wall
 	if (!IsValid(TileAt))
 		return;
-	
 	if (IsValid(TileAt->InstalledObject))
 	{
 		//existing object, check it
@@ -248,6 +239,7 @@ void AGridWorldController::InstallWallToTile(const FVector& Loc, FName Installed
 		// should be a new installed object here
 		NameToCheck = InstalledObjectName;
 	}
+	const UWallTypeComponent* WallPlacer = nullptr;
 	UWallTypeComponent** Res = WallComponents.FindByPredicate([NameToCheck](const UWallTypeComponent* WallType){return WallType->WallTypeName == NameToCheck;});
 	if (Res && *Res)
 	{
@@ -259,13 +251,14 @@ void AGridWorldController::InstallWallToTile(const FVector& Loc, FName Installed
 		if (Remove || InstalledObjectName == FName("Empty"))
 		{
 			TileAt->PlaceObject(nullptr);
-			WallPlacer->RemoveWall(GetGridWorld(),Pos);
+			WallPlacer->RemoveWall(GetGridWorld(),TileAt->GetIndexPos());
 		}
 		else
 		{
+			// incorrect usage of UInstalledObject
 			UInstalledObject* Proto = UInstalledObject::CreatePrototype(NameToCheck);
 			UInstalledObject::PlaceInstance(Proto,TileAt);
-			WallPlacer->AddWall(GetGridWorld(), Pos);
+			WallPlacer->AddWall(GetGridWorld(), TileAt->GetIndexPos());
 		}
 	}
 }
@@ -339,15 +332,13 @@ void AGridWorldController::Tick(float DeltaTime)
 	//DrawTileDebug();
 }
 
-void AGridWorldController::DrawDebug(FVector Pos, FString Str)
+void AGridWorldController::DrawDebug(const FVector Pos, const FString Str) const
 {
-	FColor DrawColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f).ToFColor(true);
-	float DrawDuration = 0.0f;
-	bool DrawShadow = true;
-	DrawDebugString(GetWorld(), Pos, *Str, nullptr, DrawColor, DrawDuration, DrawShadow);
+	const FColor DrawColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f).ToFColor(true);
+	DrawDebugString(GetWorld(), Pos, *Str, nullptr, DrawColor, 0.0f, true);
 }
 
-void AGridWorldController::DrawTileDebug()
+void AGridWorldController::DrawTileDebug() const
 {
 	for (int x = 0; x < World->Width; ++x)
 	{
@@ -356,7 +347,7 @@ void AGridWorldController::DrawTileDebug()
 			for (int z = 0; z < World->Depth; ++z)
 			{
 				FVector Pos = FVector(x,y,z);
-				UTile* Tile = World->GetTileAt(Pos);
+				const UTile* Tile = World->GetTileAt(Pos);
 				DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100) + GetActorLocation(), FString::Printf(
 							  TEXT("Index:%s\nTileType:%s\nInstalledType:%s"), *Pos.ToCompactString(),
 							  *GetEnumName(Tile->GetType()),

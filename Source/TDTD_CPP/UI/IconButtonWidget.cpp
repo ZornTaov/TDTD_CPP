@@ -4,7 +4,6 @@
 #include "UI/IconButtonWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Camera/TopDownCameraController.h"
-#include "Kismet/GameplayStatics.h"
 
 UIconButtonWidget::UIconButtonWidget(const FObjectInitializer& ObjectInitializer)
 	: UUserWidget(ObjectInitializer)
@@ -25,7 +24,7 @@ void UIconButtonWidget::OnButtonClicked()
 	OnModeClickedEvent.Broadcast(this);
 	UE_LOG(LogTemp, Verbose, TEXT("Clicked: %s"), *GetFName().ToString());
 	return;
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	/*APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
 	ATopDownCameraController* TopDownCameraController = Cast<ATopDownCameraController>(PlayerController);
 	if (TopDownCameraController == nullptr)
 	{
@@ -53,7 +52,7 @@ void UIconButtonWidget::OnButtonClicked()
 			checkNoEntry();
 		}
 		Icon->SetColorAndOpacity(Color);
-	}
+	}*/
 }
 
 void UIconButtonWidget::NativeConstruct()

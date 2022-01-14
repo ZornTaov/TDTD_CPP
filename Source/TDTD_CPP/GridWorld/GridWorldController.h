@@ -26,7 +26,7 @@ protected:
 public:
 	UGridWorld* GetGridWorld() const;
 	void SetGridWorld(UGridWorld* const InWorld);
-	void InstallWallToTile(const FVector& Loc, FName InstalledObjectName, bool Remove = false);
+	void InstallWallToTile(UTile* TileAt, FName InstalledObjectName, bool Remove = false);
 protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WorldRootComponent;
@@ -58,7 +58,7 @@ protected:
 
 	UTile* UpdateTile(FVector Pos, const ETileType& NewType, UTile* Tile = nullptr) const;
 	UTile* UpdateTile(int X, int Y, int Z, ETileType NewType, UTile* InTile = nullptr) const;
-	void DrawTileDebug();
+	void DrawTileDebug() const;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -75,5 +75,5 @@ public:
 	void TileRotate(const FVector& Vector) const;
 	void GetIndex(const UTile* TileData, uint8 OldTypeIndex, int& Index) const;
 
-	void DrawDebug(FVector Pos, FString Str);
+	void DrawDebug(FVector Pos, FString Str) const;
 };

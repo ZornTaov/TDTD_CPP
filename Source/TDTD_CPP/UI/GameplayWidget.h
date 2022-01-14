@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/HorizontalBox.h"
 #include "Components/WidgetSwitcher.h"
+#include "GridWorld/SelectionModeStruct.h"
 #include "GridWorld/Tile.h"
 #include "GameplayWidget.generated.h"
 
@@ -44,5 +45,7 @@ public:
 	class UDataTable* FloorTileDataTable = nullptr;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UDataTable* WallTileDataTable = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UDataTable* SelectionModeDataTable = nullptr;
 	TSubclassOf<UIconButtonWidget> IconWidgetBPClass;
 };

@@ -7,8 +7,11 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/HorizontalBox.h"
 #include "Camera/TopDownCameraController.h"
+#include "GridWorld/SelectionModeStruct.h"
 #include "GridWorld/WallStruct.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
 
 UGameplayWidget::UGameplayWidget(const FObjectInitializer& ObjectInitializer)
 	: UUserWidget(ObjectInitializer)
@@ -27,7 +30,7 @@ UIconButtonWidget* UGameplayWidget::AddIconButton(UPanelWidget* ParentWidget, FS
 	);
 	if (Name.Contains("Empty"))
 	{
-		IconButtonWidget->ChromaKeyColor = FLinearColor(1,1,1);
+		IconButtonWidget->SetColorAndOpacity(FLinearColor(1,1,1));
 	}
 	IconButtonWidget->SetTexture(NewTexture);
 	IconButtonWidget->Type = Type;
@@ -43,6 +46,17 @@ void UGameplayWidget::NativePreConstruct()
 	TileEditorBox->ClearChildren();
 	
 	UIconButtonWidget* TileButtonWidget = AddIconButton(MenuHBox, FString("ModeSelect"), nullptr);
+	if (IsValid(SelectionModeDataTable))
+	{
+		TArray<FSelectionModeStruct*> OutModeRowArray;
+		SelectionModeDataTable->GetAllRows<FSelectionModeStruct>(TEXT("UGameplayWidget#NativePreConstruct"), OutModeRowArray);
+		FSelectionModeStruct* Row = OutModeRowArray[0];
+		if (Row)
+		{
+			TileButtonWidget->SetTexture(Row->UIIcon);
+			TileButtonWidget->Icon->SetColorAndOpacity(Row->CursorColor);
+		}
+	}
 	TileButtonWidget->OnModeClickedEvent.AddDynamic(this, &UGameplayWidget::OnModeChangeClickedEvent);
 	AddTileButtons(TileEditorBox);
 	AddWallButtons(WallEditorBox);
@@ -59,7 +73,7 @@ void UGameplayWidget::AddTileButtons(UHorizontalBox* HorizontalBox)
 	if (IsValid(FloorTileDataTable))
 	{
 		TArray<FTileStruct*> OutTileRowArray;
-		FloorTileDataTable->GetAllRows<FTileStruct>(TEXT("GridWorldController#InitFloorComponents"), OutTileRowArray);
+		FloorTileDataTable->GetAllRows<FTileStruct>(TEXT("UGameplayWidget#AddTileButtons"), OutTileRowArray);
 		TArray<FName> Names = FloorTileDataTable->GetRowNames();
 		for (int i = 0; i < OutTileRowArray.Num(); ++i)
 		{
@@ -75,7 +89,7 @@ void UGameplayWidget::AddWallButtons(UHorizontalBox* HorizontalBox)
 	if (IsValid(WallTileDataTable))
 	{
 		TArray<FWallStruct*> OutWallRowArray;
-		WallTileDataTable->GetAllRows<FWallStruct>(TEXT("GridWorldController#InitFloorComponents"), OutWallRowArray);
+		WallTileDataTable->GetAllRows<FWallStruct>(TEXT("UGameplayWidget#AddWallButtons"), OutWallRowArray);
 		TArray<FName> Names = WallTileDataTable->GetRowNames();
 		for (int i = 0; i < OutWallRowArray.Num(); ++i)
 		{
@@ -96,25 +110,50 @@ void UGameplayWidget::OnModeChangeClickedEvent(UIconButtonWidget* Widget)
 	{
 		return;
 	}
-	switch (TopDownCameraController->CurrentMode) {
-	case EGwSelectionMode::Building:
-		TopDownCameraController->CurrentMode = EGwSelectionMode::Installing;
-		Widget->Icon->SetColorAndOpacity(FLinearColor(1,0,0,1));
-		ModeWidgetSwitcher->SetActiveWidgetIndex(static_cast<uint8>(EGwSelectionMode::Installing));
-		break;
-	case EGwSelectionMode::Installing: 
-		TopDownCameraController->CurrentMode = EGwSelectionMode::Unit;
-		Widget->Icon->SetColorAndOpacity(FLinearColor(0,1,0,1));
-		ModeWidgetSwitcher->SetActiveWidgetIndex(static_cast<uint8>(EGwSelectionMode::Unit));
-		break;
-	case EGwSelectionMode::Unit:
-		TopDownCameraController->CurrentMode = EGwSelectionMode::Building;
-		Widget->Icon->SetColorAndOpacity(FLinearColor(1,1,1,1));
-		ModeWidgetSwitcher->SetActiveWidgetIndex(static_cast<uint8>(EGwSelectionMode::Building));
-		break;
-	default:
-		checkNoEntry();
-	}	
+	
+	FLinearColor Color;
+	EGwSelectionMode Mode = EGwSelectionMode::Building;
+	UMaterialParameterCollectionInstance* Inst = GetWorld()->GetParameterCollectionInstance(
+		CastChecked<UMaterialParameterCollection>(TopDownCameraController->MaterialParameterCollectionAsset.LoadSynchronous()));
+	
+	if (IsValid(SelectionModeDataTable))
+	{
+		FSelectionModeStruct* CurrRow = reinterpret_cast<FSelectionModeStruct*>(SelectionModeDataTable->FindRowUnchecked(FName(GetEnumName(TopDownCameraController->CurrentMode))));
+		if (CurrRow)
+		{
+			Mode = CurrRow->NextMode;
+			FSelectionModeStruct* Row = reinterpret_cast<FSelectionModeStruct*>(SelectionModeDataTable->FindRowUnchecked(FName(GetEnumName(Mode))));
+			if (Row)
+			{
+				Widget->SetTexture(Row->UIIcon);
+				Color = Row->CursorColor;
+			}
+		}
+	}
+	else
+	{
+		switch (TopDownCameraController->CurrentMode) {
+		case EGwSelectionMode::Building:
+			Mode = EGwSelectionMode::Installing;
+			Color = FLinearColor(1,0,0,1);
+			break;
+		case EGwSelectionMode::Installing: 
+			Mode = EGwSelectionMode::Unit;
+			Color = FLinearColor(0,1,0,1);
+			break;
+		case EGwSelectionMode::Unit:
+			Mode = EGwSelectionMode::Building;
+			Color = FLinearColor(0,0.5f,1,1);
+			break;
+		default:
+			checkNoEntry();
+		}
+	}
+	TopDownCameraController->CurrentMode = Mode;
+	Inst->SetVectorParameterValue(FName("Highlight Color"), Color);
+	Widget->Icon->SetColorAndOpacity(Color);
+	ModeWidgetSwitcher->SetActiveWidgetIndex(static_cast<uint8>(Mode));
+			
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

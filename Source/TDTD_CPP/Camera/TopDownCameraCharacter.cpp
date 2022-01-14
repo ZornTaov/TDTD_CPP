@@ -80,7 +80,7 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 {
 	if(!ensure(Parent != nullptr)) return;
 	if(!ensure(Cursor != nullptr)) return;
-	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(Parent);
+	//UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(Parent);
 	FHitResult HitResult;
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
 	{
@@ -100,14 +100,14 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 	else if (APlayerController* PC = Cast<APlayerController>(Parent->GetController()))
 	{
 		PC->GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
-		FNavLocation NavLoc;
-		FVector QueryingExtent = FVector(5.0f, 5.0f, 250.0f);
-		FNavAgentProperties NavAgentProps;
+		//FNavLocation NavLoc;
+		//FVector QueryingExtent = FVector(5.0f, 5.0f, 250.0f);
+		//FNavAgentProperties NavAgentProps;
 		//Set you NavAgentProps properties here (radius, height, etc)
-		NavSys->ProjectPointToNavigation(HitResult.Location, NavLoc, QueryingExtent);
+		//NavSys->ProjectPointToNavigation(HitResult.Location, NavLoc, QueryingExtent);
 		//DrawDebugPoint(Parent->GetWorld(), NavLoc.Location, 20, FColor(52,220,239), false);
 
-		if (NavLoc.HasNodeRef())
+		//if (NavLoc.HasNodeRef())
 		{
 			//FVector CursorFVec = HitResult.ImpactNormal;
 			//FRotator CursorR = CursorFVec.Rotation();

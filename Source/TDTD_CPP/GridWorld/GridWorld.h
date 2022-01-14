@@ -17,6 +17,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, NoClear, EditFixedSize)
 	TArray<FGridWorldLayer> Layers;
 public:
+	UTile* GetTileAtWorldPos(FVector InPos);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Width = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -24,13 +25,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Depth = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int TileSize = 200;
+	int TileWidth = 200;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int TileThickness = 100;
-	int TileCount = 0;
 	UFUNCTION(BlueprintCallable)
 	void Init(ETileType InitType = ETileType::Empty);
 	FVector Size() const {return FVector(Width, Height, Depth);}
+	FVector TileSize() const {return FVector(TileWidth, TileWidth, TileThickness);}
 	FGridWorldLayer* GetLayer(int Index);
 	UTile* GetTileAt(FVector Pos);
 	UTile* GetTileAt(int X, int Y, int Z);

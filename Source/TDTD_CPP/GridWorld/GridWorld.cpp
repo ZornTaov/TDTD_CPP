@@ -5,6 +5,11 @@
 #include "GridWorldLayer.h"
 #include "VarDump.h"
 
+UTile* UGridWorld::GetTileAtWorldPos(const FVector InPos)
+{
+	return GetTileAt(InPos/TileSize());
+}
+
 void UGridWorld::Init(const ETileType InitType)
 {
 	// TODO: Allow for resizing of Layers[] and Layers->Tiles[][]

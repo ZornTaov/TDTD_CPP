@@ -23,7 +23,7 @@
 ATopDownCameraController::ATopDownCameraController()
 {
 	bShowMouseCursor = true;
-	DefaultMouseCursor = EMouseCursor::Crosshairs;
+	//DefaultMouseCursor = EMouseCursor::Crosshairs;
 	
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> DecalMaterialAsset(
 		TEXT("MaterialInstanceConstant'/Game/Materials/M_GridDecal_Inst.M_GridDecal_Inst'"));
@@ -31,6 +31,12 @@ ATopDownCameraController::ATopDownCameraController()
 	{
 		ActionDecal = DecalMaterialAsset.Object;
 	}
+	/*static ConstructorHelpers::FObjectFinder<UMaterialParameterCollection> MPCA(
+		TEXT("MaterialParameterCollection'/Game/Materials/CustomMouseCursorParams.CustomMouseCursorParams'"));
+	if (MPCA.Succeeded())
+	{*/
+	this->MaterialParameterCollectionAsset = FSoftObjectPath(TEXT("/Game/Materials/CustomMouseCursorParams.CustomMouseCursorParams"));
+	//}
 	static ConstructorHelpers::FClassFinder<UGameplayWidget> WidgetClass(TEXT("/Game/Hud/GwEditorWidget"));
 	if (WidgetClass.Succeeded())
 	{
@@ -71,7 +77,7 @@ float ATopDownCameraController::GetTileSize() const
 {
 	return GetWorldController() &&
 		GetWorldController()->GetGridWorld() ?
-			GetWorldController()->GetGridWorld()->TileSize : 200.0f;
+			GetWorldController()->GetGridWorld()->TileWidth : 200.0f;
 }
 
 float ATopDownCameraController::GetTileThickness() const
@@ -190,24 +196,25 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 		GetHitResultUnderCursor(ECC_Camera, false, Hit);
 		if (Hit.bBlockingHit)
 		{
-			if(GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Clicked %s"), *Hit.Actor->GetFName().ToString()));
+			/*if(GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,
+				FString::Printf(TEXT("Clicked %s"), *Hit.Actor->GetFName().ToString()));*/
 			switch (CurrentMode) {
 			case EGwSelectionMode::Building:
-				if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+				//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 				{
-					WorldController = Cast<AGridWorldController>(Hit.Actor);
+					//WorldController = Cast<AGridWorldController>(Hit.Actor);
 					for (FVector Loc : SelectedTilesLocations)
 					{
-						WorldController->TileClicked(Loc,this->CurrentTileType);
+						GetWorldController()->TileClicked(Loc,this->CurrentTileType);
 					}
 					SelectedTilesLocations.Empty();
 				}
 				break;
 			case EGwSelectionMode::Installing:
-				if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+				//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 				{				
-					WorldController = Cast<AGridWorldController>(Hit.Actor);
+					//WorldController = Cast<AGridWorldController>(Hit.Actor);
 					for (FVector Loc : SelectedTilesLocations)
 					{
 						WorldController->InstallWallToTile(Loc,this->CurrentInstalledObjectType);
@@ -297,10 +304,10 @@ void ATopDownCameraController::RotateTileUnderMouseCursor() const
 	{
 		if (CurrentMode == EGwSelectionMode::Building)
 		{
-			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+			//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
-				WorldController = Cast<AGridWorldController>(Hit.Actor);
-				WorldController->TileRotate(Hit.Location.GridSnap(GetTileSize()));
+				//WorldController = Cast<AGridWorldController>(Hit.Actor);
+				GetWorldController()->TileRotate(Hit.Location.GridSnap(GetTileSize()));
 			}
 		}
 	}
@@ -391,6 +398,50 @@ void ATopDownCameraController::WhileDragging()
 				(DragStartPosition+DragEndPosition)/2,
 				FVector(2, YSize, ZSize)
 			));
+		if (CurrentMode != EGwSelectionMode::Unit)
+		{
+			TArray<UTile* > SelectedTiles;
+			for (int X = StartX; X <= EndX; X+=GetTileSize())
+			{
+				for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
+				{
+					FVector Vector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z);
+					FVector Pos = (Vector - GetWorldController()->GetActorLocation())/GetWorldController()->GetGridWorld()->TileWidth;
+					Pos.Z = (Vector.Z - GetWorldController()->GetActorLocation().Z)/GetWorldController()->GetGridWorld()->TileThickness;
+					if (CurrentMode == EGwSelectionMode::Installing)
+					{
+						if(X == StartX || X == EndX || Y == StartY || Y == EndY)
+						{
+							SelectedTiles.Add(GetWorldController()->GetGridWorld()->GetTileAt(Pos));
+						}
+					}
+					else
+					{
+						SelectedTiles.Add(GetWorldController()->GetGridWorld()->GetTileAt(Pos));
+					}
+				}
+			}
+			SelectionDecal->OnSelectionChanged(SelectedTiles, [this](UTile* Tile)
+			{
+				if (!Tile)
+					// no tile, ignore
+					return FLinearColor::Black;
+				
+				{
+					if (!Tile->InstalledObject)
+						//new object
+						return FLinearColor::White;
+
+					if (this->CurrentInstalledObjectType == Tile->InstalledObject->ObjectType)
+					{
+						// don't color same
+						return FLinearColor::Black;
+					}
+					// not same, must remove first
+					return FLinearColor::Red;
+				}
+			});
+		}
 	}
 }
 
@@ -404,6 +455,8 @@ bool ATopDownCameraController::EndDrag()
 	if (SelectionDecal)
 	{
 		SelectionDecal->SetActorHiddenInGame(true);
+		TArray<UTile*> EmptyTiles;
+		SelectionDecal->OnSelectionChanged(EmptyTiles, [this](UTile* Tile){return FLinearColor::Black;});
 	}
 	
 	int StartX = FMath::FloorToInt(DragStartPosition.X);

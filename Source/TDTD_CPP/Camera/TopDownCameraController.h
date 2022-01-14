@@ -11,6 +11,7 @@
 #include "UI/GameplayWidget.h"
 #include "TopDownCameraController.generated.h"
 
+class ASelectionDecalActor;
 UCLASS()
 // ReSharper disable once CppUE4CodingStandardNamingViolationWarning
 class ATopDownCameraController final : public APlayerController
@@ -34,13 +35,15 @@ protected:
 	TArray<FVector> SelectedTilesLocations;
 	bool bIsDragging;
 	UPROPERTY()
-	ADecalActor* SelectionDecal = nullptr;
+	ASelectionDecalActor* SelectionDecal = nullptr;
 	UPROPERTY()
-	UMaterialInterface* ActionDecal;
+	UMaterialInstance* ActionDecal;
 	UPROPERTY()
 	UGameplayWidget* GameplayWidget;
 	TSubclassOf<UGameplayWidget> GameplayWidgetClass;
 public:
+	UPROPERTY()
+	TSoftObjectPtr<UMaterialParameterCollection> MaterialParameterCollectionAsset;
 	UPROPERTY(BlueprintReadWrite)
 	FName CurrentInstalledObjectType;
 	UPROPERTY(BlueprintReadWrite)
