@@ -54,11 +54,6 @@ public:
 protected:
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;
-	void OnRotateTiePressed();
-	void RotateTileUnderMouseCursor();
-	void OnRotateTieReleased();
-	void OnCancelOrExitPressed();
-	void OnCancelOrExitReleased();
 	virtual void SetupInputComponent() override;
 	// End PlayerController interface
 
@@ -67,6 +62,7 @@ protected:
 
 	/** Navigate player to the current mouse cursor location. */
 	void InteractUnderMouseCursor();
+	void RotateTileUnderMouseCursor() const;
 
 	/** Navigate player to the current touch location. */
 	void MoveToTouchLocation(const ETouchIndex::Type FingerIndex, const FVector Location);
@@ -74,16 +70,22 @@ protected:
 	/** Navigate player to the given world location. */
 	void SetNewMoveDestination(const FVector DestLocation);
 
+	/** Input handlers for interaction. */
+	void OnFocusCameraPressed();
+	void OnResetCameraRotPressed();
 	void OnManipulateCameraPressed();
 	void OnManipulateCameraReleased();
 	void OnManipulateCameraRotPressed();
 	void OnManipulateCameraRotReleased();
-
-	void StartDrag();
-	bool EndDrag();
-	/** Input handlers for SetDestination action. */
+	
 	void OnInteractPressed();
 	void OnInteractReleased();
+	void OnRotateTiePressed();
+	void OnCancelOrExitPressed();
+
+	void StartDrag();
+	void WhileDragging();
+	bool EndDrag();
 	
 	void MoveCamera(const FVector Vec) const;
 	void MoveCameraX(const float X);
@@ -95,5 +97,4 @@ protected:
 	TArray<ABaseUnitCharacter*>* GetSelectedUnits();
 	UFUNCTION(BlueprintCallable)
 	void DeselectUnits();
-	void WhileDragging();
 };

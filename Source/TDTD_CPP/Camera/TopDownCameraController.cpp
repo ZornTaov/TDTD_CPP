@@ -144,12 +144,13 @@ void ATopDownCameraController::SetupInputComponent()
 	&ATopDownCameraController::OnInteractReleased);
 	InputComponent->BindAction("CancelOrExit", IE_Pressed, this,
 		&ATopDownCameraController::OnCancelOrExitPressed);
-	InputComponent->BindAction("CancelOrExit", IE_Released, this,
-		&ATopDownCameraController::OnCancelOrExitReleased);
 	InputComponent->BindAction("RotateTile", IE_Pressed, this,
 		&ATopDownCameraController::OnRotateTiePressed);
-	InputComponent->BindAction("RotateTile", IE_Released, this,
-		&ATopDownCameraController::OnRotateTieReleased);
+	
+	InputComponent->BindAction("FocusCamera", IE_Pressed, this,
+		&ATopDownCameraController::OnFocusCameraPressed);
+	InputComponent->BindAction("ResetCameraRot", IE_Pressed, this,
+		&ATopDownCameraController::OnResetCameraRotPressed);
 	InputComponent->BindAction("ManipulateCamera", IE_Pressed, this,
 		&ATopDownCameraController::OnManipulateCameraPressed);
 	InputComponent->BindAction("ManipulateCamera", IE_Released, this,
@@ -157,7 +158,7 @@ void ATopDownCameraController::SetupInputComponent()
 	InputComponent->BindAction("ManipulateCameraRot", IE_Pressed, this,
 		&ATopDownCameraController::OnManipulateCameraRotPressed);
 	InputComponent->BindAction("ManipulateCameraRot", IE_Released, this,
-			&ATopDownCameraController::OnManipulateCameraRotReleased);
+		&ATopDownCameraController::OnManipulateCameraRotReleased);
 
 	// support touch devices 
 	InputComponent->BindTouch(IE_Pressed, this, &ATopDownCameraController::MoveToTouchLocation);
@@ -295,7 +296,8 @@ void ATopDownCameraController::SetNewMoveDestination(const FVector DestLocation)
 	}
 }
 
-void ATopDownCameraController::RotateTileUnderMouseCursor()
+
+void ATopDownCameraController::RotateTileUnderMouseCursor() const
 {
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Camera, false, Hit);
@@ -321,14 +323,15 @@ void ATopDownCameraController::StartDrag()
 
 	if (Hit.bBlockingHit)
 	{
+			bIsDragging = true;
 		bool Acted = false;
 		switch (CurrentMode) {
 		case EGwSelectionMode::Installing:
 		case EGwSelectionMode::Building:
-			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+			//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
 				DragStartPosition = Hit.Location.GridSnap(GetTileSize());
-				Acted = true;
+				//Acted = true;
 			}
 			break;
 		case EGwSelectionMode::Unit: 
@@ -340,7 +343,6 @@ void ATopDownCameraController::StartDrag()
 		}
 		if (Acted)
 		{
-			bIsDragging = true;
 			if (SelectionDecal)
 			{
 				SelectionDecal->SetActorHiddenInGame(false);
@@ -360,7 +362,7 @@ void ATopDownCameraController::WhileDragging()
 		switch (CurrentMode) {
 		case EGwSelectionMode::Installing:
 		case EGwSelectionMode::Building:
-			if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
+			//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
 				DragEndPosition = Hit.Location.GridSnap(GetTileSize());
 			}
@@ -390,13 +392,13 @@ void ATopDownCameraController::WhileDragging()
 			EndY = StartY;
 			StartY = Tmp;
 		}
-		const float Z = (StartX - EndX)*0.005f - (CurrentMode == EGwSelectionMode::Unit ? 0.0f : 1.05f);
-		const float Y = (StartY - EndY)*0.005f - (CurrentMode == EGwSelectionMode::Unit ? 0.0f : 1.05f);
+		const float ZSize = (StartX - EndX)*0.005f - (CurrentMode == EGwSelectionMode::Unit ? 0.0f : 1.05f);
+		const float YSize = (StartY - EndY)*0.005f - (CurrentMode == EGwSelectionMode::Unit ? 0.0f : 1.05f);
 		SelectionDecal->SetActorTransform(
 			FTransform(
 				FRotator(-90,0,0).Quaternion(),
 				(DragStartPosition+DragEndPosition)/2,
-				FVector(2, Y, Z)
+				FVector(2, YSize, ZSize)
 			));
 	}
 }
@@ -484,6 +486,28 @@ bool ATopDownCameraController::EndDrag()
 #pragma endregion CursorDrag
 
 #pragma region OnPressedReleased
+void ATopDownCameraController::OnFocusCameraPressed()
+{
+	if (SelectedUnits.Num() > 0)
+	{
+		if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
+		{
+			FVector ActorLocation = SelectedUnits[0]->GetActorLocation();
+			ActorLocation.Z = CameraPawn->GetCameraRoot()->GetComponentLocation().Z;
+			CameraPawn->GetCameraRoot()->SetWorldLocation(ActorLocation);
+		}
+	}
+}
+// ReSharper disable once CppMemberFunctionMayBeConst
+void ATopDownCameraController::OnResetCameraRotPressed()
+{
+	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
+	{
+		CameraPawn->GetCameraBoom()->TargetArmLength = 1600.f;
+		CameraPawn->GetCameraBoom()->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
+	}
+}
+
 void ATopDownCameraController::OnManipulateCameraPressed()
 {
 	bManipulateCamera = true;
@@ -519,13 +543,10 @@ void ATopDownCameraController::OnInteractReleased()
 		InteractUnderMouseCursor();
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void ATopDownCameraController::OnRotateTiePressed()
 {
 	RotateTileUnderMouseCursor();
-}
-
-void ATopDownCameraController::OnRotateTieReleased()
-{
 }
 
 void ATopDownCameraController::OnCancelOrExitPressed()
@@ -538,10 +559,6 @@ void ATopDownCameraController::OnCancelOrExitPressed()
 			SelectionDecal->SetActorHiddenInGame(true);
 		}
 	}
-}
-
-void ATopDownCameraController::OnCancelOrExitReleased()
-{
 }
 #pragma endregion OnPressedReleased
 
