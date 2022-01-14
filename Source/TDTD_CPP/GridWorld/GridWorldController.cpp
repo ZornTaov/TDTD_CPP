@@ -108,7 +108,7 @@ void AGridWorldController::InitInstance()
 				UTile* Tile = World->GetTileAt(x, y, z);
 				TileTransform.SetLocation(FVector(x * World->TileWidth, y * World->TileWidth, z * World->TileThickness));
 				const uint8 Type = static_cast<uint8>(Tile->GetType());
-				if (Type && Type < FloorComponents.Num())
+				if (Type && FloorComponents.IsValidIndex(Type) && IsValid(FloorComponents[Type]))
 				{
 					FloorComponents[Type]->AddInstance(TileTransform);
 				}
@@ -271,14 +271,17 @@ void AGridWorldController::InstallWallToTile(UTile* TileAt, const FName Installe
 
 void AGridWorldController::GetIndex(const UTile* TileData, const uint8 OldTypeIndex, int& Index) const
 {
-	for (int i = 0; i < FloorComponents[OldTypeIndex]->GetInstanceCount(); ++i)
+	if(FloorComponents.IsValidIndex(OldTypeIndex) && IsValid(FloorComponents[OldTypeIndex]))
 	{
-		FTransform Transform;
-		FloorComponents[OldTypeIndex]->GetInstanceTransform(i, Transform);
-		if (Transform.GetLocation().Equals(TileData->GetWorldPos()))
+		for (int i = 0; i < FloorComponents[OldTypeIndex]->GetInstanceCount(); ++i)
 		{
-			Index = i;
-			break;
+			FTransform Transform;
+			FloorComponents[OldTypeIndex]->GetInstanceTransform(i, Transform);
+			if (Transform.GetLocation().Equals(TileData->GetWorldPos()))
+			{
+				Index = i;
+				break;
+			}
 		}
 	}
 }
@@ -287,14 +290,14 @@ void AGridWorldController::OnTileChanged(const UTile* TileData, ETileType NewTyp
 {
 	ETileType OldType = TileData->GetType();
 	const uint8 OldTypeIndex = static_cast<uint8>(OldType);
-	if (!FloorComponents.IsValidIndex(OldTypeIndex))
+	if (!FloorComponents.IsValidIndex(OldTypeIndex) || !IsValid(FloorComponents[OldTypeIndex]))
 	{
 		UE_LOG(LogActor, Error, TEXT("Index %d not found for FloorComponents, are we missing a component?"), OldTypeIndex, OldType)
 		return;
 	}
 
 	const uint8 NewTypeIndex = static_cast<uint8>(NewType);
-	if (!FloorComponents.IsValidIndex(NewTypeIndex))
+	if (!FloorComponents.IsValidIndex(NewTypeIndex) || !IsValid(FloorComponents[NewTypeIndex]))
 	{
 		UE_LOG(LogActor, Error, TEXT("Index %d not found for FloorComponents, are we missing a component?"), NewTypeIndex, NewType)
 		return;
