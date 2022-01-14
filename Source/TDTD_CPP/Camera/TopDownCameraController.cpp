@@ -158,8 +158,8 @@ void ATopDownCameraController::SetupInputComponent()
 		&ATopDownCameraController::OnManipulateCameraRotReleased);
 
 	// support touch devices 
-	InputComponent->BindTouch(IE_Pressed, this, &ATopDownCameraController::MoveToTouchLocation);
-	InputComponent->BindTouch(IE_Repeat, this, &ATopDownCameraController::MoveToTouchLocation);
+	//InputComponent->BindTouch(IE_Pressed, this, &ATopDownCameraController::MoveToTouchLocation);
+	//InputComponent->BindTouch(IE_Repeat, this, &ATopDownCameraController::MoveToTouchLocation);
 
 	InputComponent->BindAction("ResetVR", IE_Pressed, this, &ATopDownCameraController::OnResetVR);
 
@@ -253,7 +253,7 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 	}
 }
 
-void ATopDownCameraController::MoveToTouchLocation(const ETouchIndex::Type FingerIndex, const FVector Location)
+/*void ATopDownCameraController::MoveToTouchLocation(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
 	const FVector2D ScreenSpaceLocation(Location);
 
@@ -265,7 +265,7 @@ void ATopDownCameraController::MoveToTouchLocation(const ETouchIndex::Type Finge
 		// We hit something, move there
 		SetNewMoveDestination(HitResult.ImpactPoint);
 	}
-}
+}*/
 
 void ATopDownCameraController::SetNewMoveDestination(const FVector DestLocation)
 {
