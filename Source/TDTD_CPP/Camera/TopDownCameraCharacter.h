@@ -51,8 +51,11 @@ public:
 	/** Returns SelectionCursor sub-object **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() const { return CursorToWorld; }
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float CameraSpeed = 20.0f;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	FRotator DefaultRotation = FRotator(-60.f, 0.f, 0.f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float DefaultZoom = 1600.f;
 };
 

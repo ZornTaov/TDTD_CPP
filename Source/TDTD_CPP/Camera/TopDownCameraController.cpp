@@ -9,22 +9,23 @@
 #include "Units/BaseUnitCharacter.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "TDCameraControllerComponent.h"
 #include "VarDump.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/DecalActor.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "GridWorld/GridWorld.h"
 #include "GridWorld/InstalledObject.h"
 #include "GridWorld/SelectionDecalActor.h"
 #include "GridWorld/SelectionModeEnum.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "UI/GameplayWidget.h"
-
 
 ATopDownCameraController::ATopDownCameraController()
 {
 	bShowMouseCursor = true;
 	//DefaultMouseCursor = EMouseCursor::Crosshairs;
+	
+	CameraController = CreateDefaultSubobject<UTDCameraControllerComponent>(TEXT("CameraController"));
+	AddOwnedComponent(CameraController);
 	
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> DecalMaterialAsset(
 		TEXT("MaterialInstanceConstant'/Game/Materials/M_GridDecal_Inst.M_GridDecal_Inst'"));
@@ -88,9 +89,9 @@ float ATopDownCameraController::GetTileThickness() const
 			GetWorldController()->GetGridWorld()->TileThickness : 200.0f;
 }
 
-TArray<ABaseUnitCharacter*>* ATopDownCameraController::GetSelectedUnits()
+TArray<ABaseUnitCharacter*>& ATopDownCameraController::GetSelectedUnits()
 {
-	return &SelectedUnits;
+	return SelectedUnits;
 }
 
 void ATopDownCameraController::DeselectUnits()
@@ -108,23 +109,6 @@ void ATopDownCameraController::DeselectUnits()
 void ATopDownCameraController::PlayerTick(const float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
-	// keep updating the Camera every tick while desired
-	if (bManipulateCameraRot)
-	{
-		float Dx;
-		float Dy;
-		GetInputMouseDelta(Dx, Dy);
-		RotateCamera(Dx*2*10);
-		PitchCamera(Dy*2*10);
-	}
-	else if (bManipulateCamera)
-	{
-		float Dx;
-		float Dy;
-		GetInputMouseDelta(Dx, Dy);
-		MoveCameraX(-(Dx*2));
-		MoveCameraY(-(Dy*2));
-	}
 	if (bIsDragging)
 	{
 		WhileDragging();
@@ -144,32 +128,33 @@ void ATopDownCameraController::SetupInputComponent()
 		&ATopDownCameraController::OnCancelOrExitPressed);
 	InputComponent->BindAction("RotateTile", IE_Pressed, this,
 		&ATopDownCameraController::OnRotateTiePressed);
-	
-	InputComponent->BindAction("FocusCamera", IE_Pressed, this,
-		&ATopDownCameraController::OnFocusCameraPressed);
-	InputComponent->BindAction("ResetCameraRot", IE_Pressed, this,
-		&ATopDownCameraController::OnResetCameraRotPressed);
-	InputComponent->BindAction("ManipulateCamera", IE_Pressed, this,
-		&ATopDownCameraController::OnManipulateCameraPressed);
-	InputComponent->BindAction("ManipulateCamera", IE_Released, this,
-		&ATopDownCameraController::OnManipulateCameraReleased);
-	InputComponent->BindAction("ManipulateCameraRot", IE_Pressed, this,
-		&ATopDownCameraController::OnManipulateCameraRotPressed);
-	InputComponent->BindAction("ManipulateCameraRot", IE_Released, this,
-		&ATopDownCameraController::OnManipulateCameraRotReleased);
 
+	if (CameraController)
+	{
+		InputComponent->BindAction("FocusCamera", IE_Pressed, CameraController,
+			&UTDCameraControllerComponent::OnFocusCameraPressed);
+		InputComponent->BindAction("ResetCameraRot", IE_Pressed, CameraController,
+			&UTDCameraControllerComponent::OnResetCameraRotPressed);
+		InputComponent->BindAction("ManipulateCamera", IE_Pressed, CameraController,
+			&UTDCameraControllerComponent::OnManipulateCameraPressed);
+		InputComponent->BindAction("ManipulateCamera", IE_Released, CameraController,
+			&UTDCameraControllerComponent::OnManipulateCameraReleased);
+		InputComponent->BindAction("ManipulateCameraRot", IE_Pressed, CameraController,
+			&UTDCameraControllerComponent::OnManipulateCameraRotPressed);
+		InputComponent->BindAction("ManipulateCameraRot", IE_Released, CameraController,
+			&UTDCameraControllerComponent::OnManipulateCameraRotReleased);
+		InputComponent->BindAxis("MoveForward", CameraController, &UTDCameraControllerComponent::MoveCameraY);
+		InputComponent->BindAxis("MoveRight", CameraController, &UTDCameraControllerComponent::MoveCameraX);
+		InputComponent->BindAxis("Pitch", CameraController, &UTDCameraControllerComponent::PitchCamera);
+		InputComponent->BindAxis("TurnRate", CameraController, &UTDCameraControllerComponent::RotateCamera);
+		InputComponent->BindAxis("Zoom", CameraController, &UTDCameraControllerComponent::ZoomCamera);
+	}
 	// support touch devices 
 	//InputComponent->BindTouch(IE_Pressed, this, &ATopDownCameraController::MoveToTouchLocation);
 	//InputComponent->BindTouch(IE_Repeat, this, &ATopDownCameraController::MoveToTouchLocation);
 
 	InputComponent->BindAction("ResetVR", IE_Pressed, this, &ATopDownCameraController::OnResetVR);
 
-	InputComponent->BindAxis("MoveForward", this, &ATopDownCameraController::MoveCameraY);
-	InputComponent->BindAxis("MoveRight", this, &ATopDownCameraController::MoveCameraX);
-	InputComponent->BindAxis("Pitch", this, &ATopDownCameraController::PitchCamera);
-	InputComponent->BindAxis("TurnRate", this, &ATopDownCameraController::RotateCamera);
-	
-	InputComponent->BindAxis("Zoom", this, &ATopDownCameraController::ZoomCamera);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
@@ -288,8 +273,8 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 void ATopDownCameraController::SetNewMoveDestination(const FVector DestLocation)
 {
 	int Counter = 0;
-	const float Sides = FMath::RoundToFloat(FMath::Sqrt(static_cast<float>(GetSelectedUnits()->Num())));
-	for (ABaseUnitCharacter* Unit : *GetSelectedUnits())
+	const float Sides = FMath::RoundToFloat(FMath::Sqrt(static_cast<float>(GetSelectedUnits().Num())));
+	for (ABaseUnitCharacter* Unit : GetSelectedUnits())
 	{
 		const int x = FMath::FloorToInt(Counter / Sides);
 		const int y = FMath::Fmod(Counter, Sides);
@@ -339,7 +324,7 @@ void ATopDownCameraController::StartDrag()
 
 	if (Hit.bBlockingHit)
 	{
-			bIsDragging = true;
+		bIsDragging = true;
 		bool Acted = false;
 		switch (CurrentMode) {
 		case EGwSelectionMode::Installing:
@@ -548,48 +533,6 @@ bool ATopDownCameraController::EndDrag()
 #pragma endregion CursorDrag
 
 #pragma region OnPressedReleased
-void ATopDownCameraController::OnFocusCameraPressed()
-{
-	if (SelectedUnits.Num() > 0)
-	{
-		if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
-		{
-			FVector ActorLocation = SelectedUnits[0]->GetActorLocation();
-			ActorLocation.Z = CameraPawn->GetCameraRoot()->GetComponentLocation().Z;
-			CameraPawn->GetCameraRoot()->SetWorldLocation(ActorLocation);
-		}
-	}
-}
-// ReSharper disable once CppMemberFunctionMayBeConst
-void ATopDownCameraController::OnResetCameraRotPressed()
-{
-	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
-	{
-		CameraPawn->GetCameraBoom()->TargetArmLength = 1600.f;
-		CameraPawn->GetCameraBoom()->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
-	}
-}
-
-void ATopDownCameraController::OnManipulateCameraPressed()
-{
-	bManipulateCamera = true;
-}
-
-void ATopDownCameraController::OnManipulateCameraReleased()
-{
-	bManipulateCamera = false;
-}
-
-void ATopDownCameraController::OnManipulateCameraRotPressed()
-{
-	bManipulateCameraRot = true;
-}
-
-void ATopDownCameraController::OnManipulateCameraRotReleased()
-{
-	bManipulateCameraRot = false;
-}
-
 void ATopDownCameraController::OnInteractPressed()
 {
 	// set flag to keep updating destination until released
@@ -623,83 +566,3 @@ void ATopDownCameraController::OnCancelOrExitPressed()
 	}
 }
 #pragma endregion OnPressedReleased
-
-#pragma region Camera
-void ATopDownCameraController::MoveCamera(const FVector Vec) const
-{
-	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
-	{
-		CameraPawn->GetCameraRoot()->AddWorldOffset(Vec);
-	}
-	
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void ATopDownCameraController::MoveCameraX(const float X)
-{
-	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
-	{
-		const FRotator Rot = CameraPawn->GetCameraRoot()->GetComponentRotation();
-		const FVector Vec = UKismetMathLibrary::ProjectVectorOnToPlane(
-			UKismetMathLibrary::GetRightVector(Rot),
-			FVector(0,0,1));
-		MoveCamera(Vec.GetSafeNormal() * X*CameraPawn->CameraSpeed);
-	}
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void ATopDownCameraController::MoveCameraY(const float Y)
-{
-	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
-	{
-		const FRotator Rot = CameraPawn->GetCameraRoot()->GetComponentRotation();
-		const FVector Vec = UKismetMathLibrary::ProjectVectorOnToPlane(
-			UKismetMathLibrary::GetForwardVector(Rot),
-			FVector(0,0,1));
-		MoveCamera(Vec.GetSafeNormal()  * Y*CameraPawn->CameraSpeed);
-	}
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void ATopDownCameraController::RotateCamera(const float Axis)
-{
-	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
-	{
-		if (const UWorld* World = GetWorld())
-		{
-			FRotator Rot = CameraPawn->GetCameraRoot()->GetComponentRotation();
-			Rot.Yaw = UKismetMathLibrary::ClampAxis( Rot.Yaw + Axis *
-				CameraPawn->CameraSpeed * World->GetDeltaSeconds());
-			CameraPawn->GetCameraRoot()->MoveComponent(FVector::ZeroVector, Rot, false);
-		}
-	}
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void ATopDownCameraController::PitchCamera(const float Axis)
-{
-	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
-	{
-		if (const UWorld* World = GetWorld())
-		{
-			FRotator Rot = CameraPawn->GetCameraBoom()->GetComponentRotation();
-			Rot.Pitch = UKismetMathLibrary::ClampAngle( Rot.Pitch + Axis *
-				CameraPawn->CameraSpeed * World->GetDeltaSeconds(),
-				-80, -15);
-			CameraPawn->GetCameraBoom()->MoveComponent(FVector::ZeroVector, Rot, false);
-		}
-	}
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void ATopDownCameraController::ZoomCamera(const float Axis)
-{
-	if (const ATopDownCameraCharacter* CameraPawn = Cast<ATopDownCameraCharacter>(GetPawn()))
-	{
-		float Len = CameraPawn->GetCameraBoom()->TargetArmLength;
-		Len -= Axis * Len;// * World->GetDeltaSeconds();
-		CameraPawn->GetCameraBoom()->TargetArmLength = UKismetMathLibrary::Clamp( Len, 300, 5000);
-	}
-}
-
-#pragma endregion Camera

@@ -9,7 +9,6 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
-#include "NavigationSystem.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -34,8 +33,8 @@ ATopDownCameraCharacter::ATopDownCameraCharacter(const FObjectInitializer& Objec
 	// Create a camera boom...
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(CameraRoot);
-	CameraBoom->TargetArmLength = 1600.f;
-	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
+	CameraBoom->TargetArmLength = DefaultZoom;
+	CameraBoom->SetRelativeRotation(DefaultRotation);
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 	CameraOffsetter = CreateDefaultSubobject<USceneComponent>(TEXT("CameraOffsetter"));
 	CameraOffsetter->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -66,6 +65,8 @@ ATopDownCameraCharacter::ATopDownCameraCharacter(const FObjectInitializer& Objec
 void ATopDownCameraCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	CameraBoom->TargetArmLength = DefaultZoom;
+	CameraBoom->SetRelativeRotation(DefaultRotation);
 	
 }
 
@@ -80,7 +81,6 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 {
 	if(!ensure(Parent != nullptr)) return;
 	if(!ensure(Cursor != nullptr)) return;
-	//UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(Parent);
 	FHitResult HitResult;
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
 	{
@@ -91,33 +91,17 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 			FVector EndLocation = Camera->GetComponentRotation().Vector() * 2000.0f;
 			Params.AddIgnoredActor(Parent);
 			World->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, Params);
-			//FQuat SurfaceRotation = HitResult.ImpactNormal.ToOrientationRotator().Quaternion();
-			//Cursor->SetWorldLocationAndRotation(HitResult.Location, SurfaceRotation);
 			Cursor->SetWorldLocation(HitResult.Location);
-			//Cursor->SetWorldRotation(SurfaceRotation);
 		}
 	}
 	else if (APlayerController* PC = Cast<APlayerController>(Parent->GetController()))
 	{
 		PC->GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
-		//FNavLocation NavLoc;
-		//FVector QueryingExtent = FVector(5.0f, 5.0f, 250.0f);
-		//FNavAgentProperties NavAgentProps;
-		//Set you NavAgentProps properties here (radius, height, etc)
-		//NavSys->ProjectPointToNavigation(HitResult.Location, NavLoc, QueryingExtent);
-		//DrawDebugPoint(Parent->GetWorld(), NavLoc.Location, 20, FColor(52,220,239), false);
-
-		//if (NavLoc.HasNodeRef())
-		{
-			//FVector CursorFVec = HitResult.ImpactNormal;
-			//FRotator CursorR = CursorFVec.Rotation();
-			ATopDownCameraController* Controller = Cast<ATopDownCameraController>(PC);
-			float GridSnap = Controller ?
-				Controller->GetTileSize() : 200.0f;
-			FVector CursorL = HitResult.Location.GridSnap(GridSnap);
-			CursorL.Z = HitResult.Location.Z;
-			Cursor->SetWorldLocation(CursorL);
-			//Cursor->SetWorldRotation(CursorR);
-		}
+		ATopDownCameraController* Controller = Cast<ATopDownCameraController>(PC);
+		float GridSnap = Controller ?
+			Controller->GetTileSize() : 200.0f;
+		FVector CursorL = HitResult.Location.GridSnap(GridSnap);
+		CursorL.Z = HitResult.Location.Z;
+		Cursor->SetWorldLocation(CursorL);
 	}
 }

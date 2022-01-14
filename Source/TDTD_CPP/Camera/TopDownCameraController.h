@@ -10,6 +10,7 @@
 #include "UI/GameplayWidget.h"
 #include "TopDownCameraController.generated.h"
 
+class UTDCameraControllerComponent;
 class ASelectionDecalActor;
 UCLASS()
 // ReSharper disable once CppUE4CodingStandardNamingViolationWarning
@@ -23,8 +24,6 @@ protected:
 	virtual void BeginPlay() override;
 	/** True if the controlled character should navigate to the mouse cursor. */
 	bool BInteractUnderMouseCursor : 1;
-	bool bManipulateCamera;
-	bool bManipulateCameraRot;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Units, meta = (AllowPrivateAccess = "true"))
 	TArray<ABaseUnitCharacter*> SelectedUnits;
 	UPROPERTY()
@@ -50,6 +49,8 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	EGwSelectionMode CurrentMode = EGwSelectionMode::Building;
 	AGridWorldController* GetWorldController() const;
+	UPROPERTY()
+	UTDCameraControllerComponent* CameraController;
 	void SetWorldController(AGridWorldController* const InWorldController);
 	float GetTileSize() const;
 	float GetTileThickness() const;
@@ -72,32 +73,18 @@ protected:
 	
 	/** Navigate player to the given world location. */
 	void SetNewMoveDestination(const FVector DestLocation);
-
-	/** Input handlers for interaction. */
-	void OnFocusCameraPressed();
-	void OnResetCameraRotPressed();
-	void OnManipulateCameraPressed();
-	void OnManipulateCameraReleased();
-	void OnManipulateCameraRotPressed();
-	void OnManipulateCameraRotReleased();
 	
 	void OnInteractPressed();
 	void OnInteractReleased();
 	void OnRotateTiePressed();
 	void OnCancelOrExitPressed();
-
+	
 	void StartDrag();
 	void WhileDragging();
 	bool EndDrag();
 	
-	void MoveCamera(const FVector Vec) const;
-	void MoveCameraX(const float X);
-	void MoveCameraY(const float Y);
-	void RotateCamera(const float Axis);
-	void ZoomCamera(const float Axis);
-	void PitchCamera(const float Axis);
-
-	TArray<ABaseUnitCharacter*>* GetSelectedUnits();
+public:
+	TArray<ABaseUnitCharacter*>& GetSelectedUnits();
 	UFUNCTION(BlueprintCallable)
 	void DeselectUnits();
 };
