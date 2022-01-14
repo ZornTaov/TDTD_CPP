@@ -72,7 +72,7 @@ public:
 	void InitFloorComponents(TArray<UInstancedStaticMeshComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const;
 	void InitWallComponents(TArray<UWallTypeComponent*>& Components, const USceneComponent* ParentComp, const UDataTable* Data) const;
 	void InitInstance();
-	void ClearWallInstances(TArray<UWallTypeComponent*> Array);
+	void ClearWallInstances(TArray<UWallTypeComponent*>& Components);
 	void ClearAllInstances();
 	void ClearTileInstances(TArray<UInstancedStaticMeshComponent*>& Components);
 	void TileClicked(const FVector& Vector, ETileType NewType) const;

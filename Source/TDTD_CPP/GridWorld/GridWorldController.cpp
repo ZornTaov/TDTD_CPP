@@ -185,7 +185,7 @@ void AGridWorldController::ClearTileInstances(TArray<UInstancedStaticMeshCompone
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
-void AGridWorldController::ClearWallInstances(TArray<UWallTypeComponent*> Components)
+void AGridWorldController::ClearWallInstances(TArray<UWallTypeComponent*>& Components)
 {
 	for (UWallTypeComponent*& Component : Components)
 	{
