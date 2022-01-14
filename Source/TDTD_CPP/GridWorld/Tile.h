@@ -15,12 +15,6 @@ class UGridWorld;
 UENUM(BlueprintType)
 enum class ETileType : uint8 { Empty, Ground, Floor, Ramp };
 
-template<typename T>
-static FString GetEnumName(T InValue)
-{
-	return StaticEnum<T>()->GetNameStringByIndex(static_cast<int32>(InValue));
-}
-
 USTRUCT(BlueprintType)
 struct FTileStruct : public FTableRowBase
 {

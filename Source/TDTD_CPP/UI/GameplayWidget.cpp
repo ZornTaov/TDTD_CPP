@@ -2,6 +2,8 @@
 
 
 #include "UI/GameplayWidget.h"
+
+#include "TDTDExtensionHelpers.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/HorizontalBox.h"
 #include "Camera/TopDownCameraController.h"

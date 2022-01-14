@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "GridWorld.h"
 #include "InstalledObject.h"
+#include "TDTDExtensionHelpers.h"
 #include "VarDump.h"
 #include "WallStruct.h"
 #include "Camera/TopDownCameraController.h"
