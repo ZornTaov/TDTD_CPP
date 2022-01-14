@@ -2,7 +2,7 @@
 	"source": "UE",
 	"applications": [
 		{
-			"app_key": "application.generated.ue.top-down-game-template-17735300.ue4editor-win64-debuggame.exe",
+			"app_key": "application.generated.ue.top-down-game-template-18319896.ue4editor-win64-debuggame.exe",
 			"launch_type": "url",
 			"url": "steam://launch/",
 			"action_manifest_path": "D:/Dev/Unreal/Projects/TDTD_CPP/Config/SteamVRBindings/steamvr_manifest.json",
@@ -10,7 +10,7 @@
 			{
 				"en_us":
 				{
-					"name": "Top Down Game Template-17735300 [UE Editor]"
+					"name": "Top Down Game Template-18319896 [UE Editor]"
 				}
 			}
 		}
