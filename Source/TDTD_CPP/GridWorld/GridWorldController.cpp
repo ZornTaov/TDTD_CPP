@@ -64,25 +64,6 @@ void AGridWorldController::BeginPlay()
 		Controller->SetWorldController(this);
 	}
 	JobSystem = NewObject<UJobSystem>();
-	//World->Init();
-	/*int Layer = 0;
-	for (int x = 0; x < World->Size().X; ++x)
-	{
-		for (int y = 0; y < World->Size().Y; ++y)
-		{
-			FTile* Tile_Data = World->GetTileAt(x, y, 0);
-			FActorSpawnParameters Params = FActorSpawnParameters();
-			Params.Name = FName(FString::Printf(TEXT("tile_%d_%d"), x, y));
-	    	
-			Params.Owner = this;
-			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			FVector Location = FVector(x, y, Layer)*World->TileWidth;
-			ATileActor* TileActor = AActor::GetWorld()->SpawnActor<ATileActor>(Location, FRotator::ZeroRotator, Params);
-			//Tile_Data->Del.AddLambda([TileActor, this](FTile* Tile){OnTileChanged(*Tile, this->FloorTileDataTable, TileActor);});
-			Tile_Data->SetType(ETileType::Floor);
-		}
-	}
-	GetWorld()->GetNavigationSystem()->InitializeForWorld(*GetWorld(), FNavigationSystemRunMode::GameMode);*/
 }
 
 void AGridWorldController::OnConstruction(const FTransform& Transform)
