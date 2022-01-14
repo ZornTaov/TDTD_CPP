@@ -62,6 +62,7 @@ protected:
 
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();
+	void OnWallInstallDone(UJob* Job, FName InstalledObjectType);
 
 	/** Navigate player to the current mouse cursor location. */
 	void InteractUnderMouseCursor();

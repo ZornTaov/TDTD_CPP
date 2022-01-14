@@ -14,6 +14,7 @@
 #include "Engine/DecalActor.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GridWorld/GridWorld.h"
+#include "GridWorld/InstalledObject.h"
 #include "GridWorld/SelectionDecalActor.h"
 #include "GridWorld/SelectionModeEnum.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -177,6 +178,13 @@ void ATopDownCameraController::OnResetVR()
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
+void ATopDownCameraController::OnWallInstallDone(UJob* Job, FName InstalledObjectType)
+{
+	Job->GetTile()->Jobs.Remove(Job);
+	this->GetWorldController()->InstallWallToTile(Job->GetTile(), InstalledObjectType);
+}
+
 void ATopDownCameraController::InteractUnderMouseCursor()
 {
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
@@ -217,7 +225,17 @@ void ATopDownCameraController::InteractUnderMouseCursor()
 					//WorldController = Cast<AGridWorldController>(Hit.Actor);
 					for (FVector Loc : SelectedTilesLocations)
 					{
-						WorldController->InstallWallToTile(Loc,this->CurrentInstalledObjectType);
+						UTile* TileAt = GetWorldController()->GetGridWorld()->GetTileAtWorldPos(Loc - GetWorldController()->GetActorLocation());
+						const FName InstalledObjectType = this->CurrentInstalledObjectType;
+
+						if (UInstalledObject::IsValidPosition(TileAt) && TileAt->Jobs.Num() == 0)
+						{
+							UJob* Job = GetWorldController()->GetJobSystem()->MakeJob(TileAt);
+							TileAt->Jobs.Add(Job);
+							
+							Job->OnJobComplete.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});
+							Job->OnJobCancel.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});
+						}
 					}
 					SelectedTilesLocations.Empty();
 				}

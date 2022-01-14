@@ -6,6 +6,14 @@
 #include "GridWorldLayer.h"
 #include "GridWorld.generated.h"
 
+class UTile;
+class UInstalledObject;
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnFurnitureCreatedDispatcher, UInstalledObject*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnTileChangedDispatcher, UTile*);
+using FOnFurnitureCreated = FOnFurnitureCreatedDispatcher::FDelegate;
+using FOnTileChanged = FOnTileChangedDispatcher::FDelegate;
+
+
 /**
  * 
  */
@@ -17,7 +25,13 @@ protected:
 	UPROPERTY(BlueprintReadWrite, NoClear, EditFixedSize)
 	TArray<FGridWorldLayer> Layers;
 public:
+
+	FOnFurnitureCreatedDispatcher OnFurnitureCreated;
+	FOnTileChangedDispatcher OnTileChanged;
+	void RegisterFurnitureCreated(const FOnFurnitureCreated& Del);
+	void RegisterTileChanged(const FOnTileChanged& Del);
 	UTile* GetTileAtWorldPos(FVector InPos);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Width = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

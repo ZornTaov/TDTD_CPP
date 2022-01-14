@@ -10,9 +10,10 @@
  * 
  */
 UCLASS()
-class TDTD_CPP_API UInstalledObject : public UObject
+class TDTD_CPP_API UInstalledObject : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
+	UPROPERTY()
 	UTile* Tile;
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Info")
@@ -26,14 +27,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Info")
 	bool LinksToNeighbor;
 
-	/*virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
 	{
-		return FPrimaryAssetId(TEXT("Installed Object"), GetFName());
-	}*/
+		return FPrimaryAssetId(FPrimaryAssetType("Installed Object"), GetFName());
+	}
 
 	UInstalledObject() {  }
 	
 	static UInstalledObject* CreatePrototype(const FName Type, const float Cost = 1.0f, const int W = 1, const int H = 1);
 
 	static UInstalledObject* PlaceInstance(const UInstalledObject* Proto, UTile* T);
+	static bool IsValidPosition(UTile* InTile);
 };

@@ -6,6 +6,7 @@
 #include "Engine/DataTable.h"
 #include "Tile.generated.h"
 
+class UJob;
 DECLARE_LOG_CATEGORY_EXTERN(LogTile, Log, All);
 
 
@@ -52,6 +53,10 @@ public:
 	UGridWorld* World = nullptr;
 	UPROPERTY()
 	UInstalledObject* InstalledObject = nullptr;
+
+	UPROPERTY()
+	TArray<UJob*> Jobs;
+	
 	FTransform& GetPos();
 	ETileType GetType() const;
 	void SetType(ETileType InType);

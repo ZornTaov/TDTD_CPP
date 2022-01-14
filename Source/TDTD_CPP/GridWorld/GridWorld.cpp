@@ -5,6 +5,16 @@
 #include "GridWorldLayer.h"
 #include "VarDump.h"
 
+void UGridWorld::RegisterFurnitureCreated(const FOnFurnitureCreated& Del)
+{
+	OnFurnitureCreated.Add(Del);
+}
+
+void UGridWorld::RegisterTileChanged(const FOnTileChanged& Del)
+{
+	OnTileChanged.Add(Del);
+}
+
 UTile* UGridWorld::GetTileAtWorldPos(const FVector InPos)
 {
 	return GetTileAt(InPos/TileSize());

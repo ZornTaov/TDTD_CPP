@@ -10,6 +10,7 @@
 #include "VarDump.h"
 #include "WallStruct.h"
 #include "Camera/TopDownCameraController.h"
+#include "JobSystem/JobSystem.h"
 
 // Sets default values
 AGridWorldController::AGridWorldController()
@@ -38,6 +39,11 @@ AGridWorldController::AGridWorldController()
 	}
 }
 
+UJobSystem* AGridWorldController::GetJobSystem() const
+{
+	return JobSystem;
+}
+
 UGridWorld* AGridWorldController::GetGridWorld() const
 {
 	return World;
@@ -57,6 +63,7 @@ void AGridWorldController::BeginPlay()
 	{
 		Controller->SetWorldController(this);
 	}
+	JobSystem = NewObject<UJobSystem>();
 	//World->Init();
 	/*int Layer = 0;
 	for (int x = 0; x < World->Size().X; ++x)
@@ -105,11 +112,10 @@ void AGridWorldController::InitInstance()
 				{
 					FloorComponents[Type]->AddInstance(TileTransform);
 				}
-				/*const uint8 WallType = static_cast<uint8>(Tile->GetWallType());
-				if (WallType && WallType < WallComponents.Num())
+				if (Tile->InstalledObject)
 				{
-					Tile->InstanceIndex = WallComponents[WallType]->AddWall(TileTransform);
-				}*/
+					InstallWallToTile(Tile, Tile->InstalledObject->ObjectType);
+				}
 			}
 		}
 	}
@@ -277,7 +283,7 @@ void AGridWorldController::GetIndex(const UTile* TileData, const uint8 OldTypeIn
 	}
 }
 
-void AGridWorldController::OnTileTypeChanged(const UTile* TileData, ETileType NewType) const
+void AGridWorldController::OnTileChanged(const UTile* TileData, ETileType NewType) const
 {
 	ETileType OldType = TileData->GetType();
 	const uint8 OldTypeIndex = static_cast<uint8>(OldType);
@@ -319,7 +325,7 @@ UTile* AGridWorldController::UpdateTile(const int X, const int Y, const int Z, c
 		Tile = World->GetTileAt(X, Y, Z);
 	}
 	//turn into a callback
-	OnTileTypeChanged(Tile, NewType);
+	OnTileChanged(Tile, NewType);
 	Tile->SetType(NewType);
 	return Tile;
 }

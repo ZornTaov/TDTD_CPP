@@ -7,6 +7,7 @@
 #include "WallTypeComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
+#include "JobSystem/JobSystem.h"
 #include "GridWorldController.generated.h"
 
 class ATileActor;
@@ -23,7 +24,10 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UGridWorld* World = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UJobSystem* JobSystem;
 public:
+	UJobSystem* GetJobSystem() const;
 	UGridWorld* GetGridWorld() const;
 	void SetGridWorld(UGridWorld* const InWorld);
 	void InstallWallToTile(UTile* TileAt, FName InstalledObjectName, bool Remove = false);
@@ -54,7 +58,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
-	void OnTileTypeChanged(const UTile* TileDataRef, ETileType NewType) const;
+	void OnTileChanged(const UTile* TileDataRef, ETileType NewType) const;
 
 	UTile* UpdateTile(FVector Pos, const ETileType& NewType, UTile* Tile = nullptr) const;
 	UTile* UpdateTile(int X, int Y, int Z, ETileType NewType, UTile* InTile = nullptr) const;
