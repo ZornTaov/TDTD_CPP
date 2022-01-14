@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DecalActor.h"
 #include "Units/BaseUnitCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "GridWorld/GridWorldController.h"
