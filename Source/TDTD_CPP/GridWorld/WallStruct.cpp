@@ -1,7 +1,7 @@
 #include "WallStruct.h"
 
 #include "GridWorld.h"
-#include "InstalledObject.h"
+#include "Installables/InstalledObject.h"
 
 TMap<EWallQuadrant, TArray<ETileDirection>> FWallStruct::SubTileMap =
 #pragma region SubMapMap

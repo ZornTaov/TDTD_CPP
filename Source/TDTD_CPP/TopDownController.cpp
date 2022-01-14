@@ -13,7 +13,7 @@
 #include "Camera/TDCameraControllerComponent.h"
 #include "Engine/DecalActor.h"
 #include "GridWorld/GridWorld.h"
-#include "GridWorld/InstalledObject.h"
+#include "Installables/InstalledObject.h"
 #include "GridWorld/SelectionDecalActor.h"
 #include "GridWorld/SelectionModeEnum.h"
 #include "UI/GameplayWidget.h"

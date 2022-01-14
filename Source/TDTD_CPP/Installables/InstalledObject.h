@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Tile.h"
+#include "GridWorld/Tile.h"
 #include "InstalledObject.generated.h"
 
 /**
