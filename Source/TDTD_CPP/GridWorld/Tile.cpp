@@ -33,7 +33,7 @@ FVector UTile::GetWorldPos() const
 {
 	if (World)
 	{
-		return this->GetIndexPos() * FVector(World->TileSize, World->TileSize, World->TileThickness);
+		return this->GetIndexPos() * FVector(World->TileWidth, World->TileWidth, World->TileThickness);
 	}
 	else
 	{
