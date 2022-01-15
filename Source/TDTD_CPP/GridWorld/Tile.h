@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "TileType.h"
 #include "Engine/DataTable.h"
+#include "GridWorld.h"
 #include "Tile.generated.h"
 
 class UJob;
 DECLARE_LOG_CATEGORY_EXTERN(LogTile, Log, All);
 
 class UInstalledObject;
-class UGridWorld;
 
 USTRUCT(BlueprintType)
 struct FTileStruct : public FTableRowBase

@@ -2,7 +2,6 @@
 
 
 #include "Tile.h"
-#include "GridWorld.h"
 #include "Installables/InstalledObject.h"
 
 DEFINE_LOG_CATEGORY(LogTile);
