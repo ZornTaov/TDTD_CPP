@@ -37,5 +37,5 @@ public:
 	static UInstalledObject* CreatePrototype(const FName Type, const float Cost = 1.0f, const int W = 1, const int H = 1);
 
 	static UInstalledObject* PlaceInstance(const UInstalledObject* Proto, UTile* T);
-	static bool IsValidPosition(UTile* InTile);
+	static bool IsValidPosition(UTile* InTile, bool ToRemove = false);
 };

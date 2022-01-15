@@ -205,13 +205,13 @@ void ATopDownController::InteractUnderMouseCursor()
 						UTile* TileAt = GetWorldController()->GetTileAtWorldPos(Loc);
 						const FName InstalledObjectType = this->CurrentInstalledObjectType;
 
-						if (UInstalledObject::IsValidPosition(TileAt) && TileAt->Jobs.Num() == 0)
+						if (UInstalledObject::IsValidPosition(TileAt,InstalledObjectType.IsEqual(FName("Empty"))) && TileAt->Jobs.Num() == 0)
 						{
 							UJob* Job = GetWorldController()->GetJobSystem()->MakeJob(TileAt);
 							TileAt->Jobs.Add(Job);
 							
 							Job->OnJobComplete.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});
-							Job->OnJobCancel.AddLambda([this](UJob* InJob){OnWallInstallDone(InJob, FName("Empty"));});
+							Job->OnJobCancel.AddLambda([this](UJob* InJob){InJob->GetTile()->Jobs.Remove(InJob);});
 						}
 					}
 					SelectedTilesLocations.Empty();

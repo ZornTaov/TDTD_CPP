@@ -141,7 +141,7 @@ void AGridWorldController::InstallWallToTile(UTile* TileAt, const FName Installe
 		UInstalledObject* Proto = UInstalledObject::CreatePrototype(NameToCheck);
 		UInstalledObject::PlaceInstance(Proto,TileAt);
 	}
-	WallManager->PlaceWall(TileAt, InstalledObjectName, Remove);
+	WallManager->PlaceWall(TileAt, NameToCheck, Remove);
 }
 
 UTile* AGridWorldController::GetTileAtWorldPos(const FVector& Loc) const

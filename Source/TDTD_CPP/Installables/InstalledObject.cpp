@@ -27,14 +27,14 @@ UInstalledObject* UInstalledObject::PlaceInstance(const UInstalledObject* Proto,
 	}
 	return Obj;
 }
-bool UInstalledObject::IsValidPosition(UTile* InTile)
+bool UInstalledObject::IsValidPosition(UTile* InTile, bool ToRemove)
 {
 	// Make sure the tile is valid.
 	if (!InTile) return false;
 	// Make sure there's a floor.
 	if (InTile->GetType() == ETileType::Empty) return false;
 	// Make sure there's nothing already there.
-	if (InTile->InstalledObject != nullptr) return false;
+	if (InTile->InstalledObject != nullptr && !ToRemove) return false;
 	
 	return true;
 }

@@ -53,7 +53,7 @@ void UWallManagerComponent::PlaceWall(UTile* TileAt, FName NameToCheck, bool Rem
 	if (IsValid(WallPlacer))
 	{
 		
-		if (Remove || NameToCheck == FName("Empty"))
+		if (Remove)
 		{
 			WallPlacer->RemoveWall(TileAt);
 		}
