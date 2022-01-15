@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TileManagerComponent.h"
-#include "WallTypeComponent.h"
 #include "GameFramework/Actor.h"
-#include "Engine/DataTable.h"
 #include "JobSystem/JobSystem.h"
 #include "GridWorldController.generated.h"
 
+enum class ETileType : uint8;
+class UTileManagerComponent;
+class UGridWorld;
+class UWallManagerComponent;
 class ATileActor;
 UCLASS()
 class TDTD_CPP_API AGridWorldController : public AActor 
@@ -46,15 +47,12 @@ protected:
 	
 	UPROPERTY(Instanced, NoClear)
 	UTileManagerComponent* TileManager;
+	UPROPERTY(Instanced, NoClear)
+	UWallManagerComponent* WallManager;
 public:
 	UTileManagerComponent* GetTileManager() const;
-protected:
-	UPROPERTY(BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
-	TArray<UWallTypeComponent*> WallComponents;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UDataTable* WallTileDataTable = nullptr;
-	
+	UWallManagerComponent* GetWallManager() const;
+protected:	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
@@ -65,11 +63,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
-	void InitWallInstance(UTile* Tile);
-	void InitWallComponents(const USceneComponent* ParentComp);
-	void InitInstance();
-	void ClearAllInstances();
-	void ClearWallInstances(TArray<UWallTypeComponent*>& Components);
+	void InitInstances() const;
+	void ClearAllInstances() const;
+
 	void TileClicked(UTile* Tile, ETileType NewType) const;
 	void TileRotate(UTile* Tile) const;
 	UTile* UpdateTile(ETileType NewType, UTile* InTile = nullptr) const;

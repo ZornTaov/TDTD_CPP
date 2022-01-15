@@ -191,7 +191,7 @@ void ATopDownController::InteractUnderMouseCursor()
 					for (FVector Loc : SelectedTilesLocations)
 					{
 						UTile* Tile = GetWorldController()->GetTileAtWorldPos(Loc);
-						GetWorldController()->GetTileManager()->TileClicked(Tile,this->CurrentTileType);
+						GetWorldController()->TileClicked(Tile,this->CurrentTileType);
 					}
 					SelectedTilesLocations.Empty();
 				}
@@ -211,7 +211,7 @@ void ATopDownController::InteractUnderMouseCursor()
 							TileAt->Jobs.Add(Job);
 							
 							Job->OnJobComplete.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});
-							Job->OnJobCancel.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});
+							Job->OnJobCancel.AddLambda([this](UJob* InJob){OnWallInstallDone(InJob, FName("Empty"));});
 						}
 					}
 					SelectedTilesLocations.Empty();
@@ -303,7 +303,7 @@ void ATopDownController::RotateTileUnderMouseCursor() const
 			{
 				//WorldController = Cast<AGridWorldController>(Hit.Actor);
 				UTile* Tile = WorldController->GetTileAtWorldPos(Hit.Location.GridSnap(GetTileSize()));
-				GetWorldController()->GetTileManager()->TileRotate(Tile);
+				GetWorldController()->TileRotate(Tile);
 			}
 		}
 	}

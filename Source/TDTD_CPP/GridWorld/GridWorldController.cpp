@@ -6,9 +6,10 @@
 #include "GridWorld.h"
 #include "Installables/InstalledObject.h"
 #include "TDTDExtensionHelpers.h"
+#include "TileManagerComponent.h"
 #include "VarDump.h"
-#include "WallStruct.h"
 #include "TopDownController.h"
+#include "WallManagerComponent.h"
 #include "JobSystem/JobSystem.h"
 
 // Sets default values
@@ -20,6 +21,8 @@ AGridWorldController::AGridWorldController()
 	AddOwnedComponent(World);
 	TileManager = CreateDefaultSubobject<UTileManagerComponent>(TEXT("TileManager"));
 	AddOwnedComponent(TileManager);
+	WallManager = CreateDefaultSubobject<UWallManagerComponent>(TEXT("WallManager"));
+	AddOwnedComponent(WallManager);
 	
 	WorldRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("WorldRootComponent"));
 	RootComponent = WorldRootComponent;
@@ -28,11 +31,6 @@ AGridWorldController::AGridWorldController()
 	WallsRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("WallsRootComponent"));
 	WallsRootComponent->SetupAttachment(WorldRootComponent);
 	
-	static ConstructorHelpers::FObjectFinder<UDataTable> Wdt(TEXT("DataTable'/Game/Blueprints/WallInfoTable.WallInfoTable'"));
-	if (Wdt.Succeeded())
-	{
-		WallTileDataTable = Wdt.Object;
-	}
 }
 
 UJobSystem* AGridWorldController::GetJobSystem() const
@@ -55,6 +53,11 @@ UTileManagerComponent* AGridWorldController::GetTileManager() const
 	return TileManager;
 }
 
+UWallManagerComponent* AGridWorldController::GetWallManager() const
+{
+	return WallManager;
+}
+
 // Called when the game starts or when spawned
 void AGridWorldController::BeginPlay()
 {
@@ -71,21 +74,13 @@ void AGridWorldController::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	TileManager->InitFloorComponents(FloorsRootComponent);
-	InitWallComponents(WallsRootComponent);
+	WallManager->InitWallComponents(WallsRootComponent);
 	World->Init(ETileType::Ground);
 	ClearAllInstances();
-	InitInstance();
+	InitInstances();
 }
 
-void AGridWorldController::InitWallInstance(UTile* Tile)
-{
-	if (Tile->InstalledObject)
-	{
-		InstallWallToTile(Tile, Tile->InstalledObject->ObjectType);
-	}
-}
-
-void AGridWorldController::InitInstance()
+void AGridWorldController::InitInstances() const
 {
 	FTransform TileTransform;
 	TileTransform.SetRotation(FQuat::Identity);
@@ -98,54 +93,16 @@ void AGridWorldController::InitInstance()
 				UTile* Tile = World->GetTileAt(x, y, z);
 				TileTransform.SetLocation(FVector(x, y, z) * World->TileSize());
 				TileManager->InitTileInstance(TileTransform, Tile);
-				InitWallInstance(Tile);
+				WallManager->InitWallInstance(Tile);
 			}
 		}
 	}
 }
 
-void AGridWorldController::InitWallComponents(const USceneComponent* ParentComp)
-{
-	if (ParentComp->GetNumChildrenComponents() != 0)
-	{
-		TArray<FWallStruct*> OutWallRowArray;
-		WallTileDataTable->GetAllRows<FWallStruct>(TEXT("GridWorldController#InitWallComponents"),OutWallRowArray);
-		if (OutWallRowArray.Num() == 0)
-		{
-			return;
-		}
-		WallComponents.SetNum(ParentComp->GetNumChildrenComponents());
-		for (int i = 0; i < ParentComp->GetNumChildrenComponents(); ++i)
-		{
-			UWallTypeComponent* Child = Cast<UWallTypeComponent>(ParentComp->GetChildComponent(i));
-			if(IsValid(Child))
-			{
-				Child->FillISM->SetStaticMesh(OutWallRowArray[i]->FillMesh);
-				Child->InnerCornerISM->SetStaticMesh(OutWallRowArray[i]->InnerCornerMesh);
-				Child->MiddleISM->SetStaticMesh(OutWallRowArray[i]->MiddleMesh);
-				Child->OuterCornerISM->SetStaticMesh(OutWallRowArray[i]->OuterCornerMesh);
-				Child->WallTypeName = WallTileDataTable->GetRowNames()[i];
-				WallComponents[i] = Child;
-			}
-		}
-	}
-}
-
-void AGridWorldController::ClearAllInstances()
+void AGridWorldController::ClearAllInstances() const
 {
 	TileManager->ClearTileInstances();
-	ClearWallInstances(WallComponents);
-}
-
-// ReSharper disable once CppMemberFunctionMayBeStatic
-void AGridWorldController::ClearWallInstances(TArray<UWallTypeComponent*>& Components)
-{
-	for (UWallTypeComponent*& Component : Components)
-	{
-		if(Component == nullptr) continue;
-		if(IsValid(Component))
-			Component->ClearInstances();
-	}
+	WallManager->ClearWallInstances();
 }
 
 void AGridWorldController::InstallWallToTile(UTile* TileAt, const FName InstalledObjectName, bool Remove)
@@ -174,28 +131,17 @@ void AGridWorldController::InstallWallToTile(UTile* TileAt, const FName Installe
 		// should be a new installed object here
 		NameToCheck = InstalledObjectName;
 	}
-	const UWallTypeComponent* WallPlacer = nullptr;
-	UWallTypeComponent** Res = WallComponents.FindByPredicate([NameToCheck](const UWallTypeComponent* WallType){return WallType->WallTypeName == NameToCheck;});
-	if (Res && *Res)
+	if (Remove || InstalledObjectName == FName("Empty"))
 	{
-		WallPlacer = *Res;
+		TileAt->PlaceObject(nullptr);
 	}
-	if (IsValid(WallPlacer))
+	else
 	{
-		
-		if (Remove || InstalledObjectName == FName("Empty"))
-		{
-			TileAt->PlaceObject(nullptr);
-			WallPlacer->RemoveWall(GetGridWorld(),TileAt->GetIndexPos());
-		}
-		else
-		{
-			// incorrect usage of UInstalledObject
-			UInstalledObject* Proto = UInstalledObject::CreatePrototype(NameToCheck);
-			UInstalledObject::PlaceInstance(Proto,TileAt);
-			WallPlacer->AddWall(GetGridWorld(), TileAt->GetIndexPos());
-		}
+		// incorrect usage of UInstalledObject
+		UInstalledObject* Proto = UInstalledObject::CreatePrototype(NameToCheck);
+		UInstalledObject::PlaceInstance(Proto,TileAt);
 	}
+	WallManager->PlaceWall(TileAt, InstalledObjectName, Remove);
 }
 
 UTile* AGridWorldController::GetTileAtWorldPos(const FVector& Loc) const
@@ -241,7 +187,7 @@ UTile* AGridWorldController::UpdateTile(const ETileType NewType, UTile* Tile) co
 void AGridWorldController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//DrawTileDebug();
+	DrawTileDebug();
 }
 
 void AGridWorldController::DrawDebug(const FVector Pos, const FString Str) const
@@ -252,19 +198,20 @@ void AGridWorldController::DrawDebug(const FVector Pos, const FString Str) const
 
 void AGridWorldController::DrawTileDebug() const
 {
-	for (int x = 0; x < World->Width; ++x)
+	FHitResult Hit;
+	GetGameInstance()->GetPrimaryPlayerController()->GetHitResultUnderCursor(ECC_Camera, false, Hit);
+	FVector CursorL = Hit.ImpactPoint.GridSnap(World->TileWidth);
+	CursorL.Z = Hit.ImpactPoint.Z;
+	TArray<UTile*> Tiles = GetGridWorld()->GetNeighborTiles(
+		(CursorL - GetActorLocation())/GetGridWorld()->TileSize(),
+		2
+		);
+	for (const UTile* Tile : Tiles)
 	{
-		for (int y = 0; y < World->Height; ++y)
-		{
-			for (int z = 0; z < World->Depth; ++z)
-			{
-				FVector Pos = FVector(x,y,z);
-				const UTile* Tile = World->GetTileAt(Pos);
-				DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100) + GetActorLocation(), FString::Printf(
-							  TEXT("Index:%s\nTileType:%s\nInstalledType:%s"), *Pos.ToCompactString(),
-							  *GetEnumName(Tile->GetType()),
-							  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT(""))));
-			}
-		}		
+		if (Tile)
+			DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100) + GetActorLocation(), FString::Printf(
+					  TEXT("Index:%s\nTileType:%s\nInstalledType:%s"), *Tile->GetIndexPos().ToCompactString(),
+					  *GetEnumName(Tile->GetType()),
+					  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT("Empty"))));
 	}
 }

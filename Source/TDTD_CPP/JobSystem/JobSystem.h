@@ -16,8 +16,8 @@ class TDTD_CPP_API UJobSystem : public UObject
 {
 	TQueue<UJob*> JobQueue;
 public:
-	FOnJobEvent OnJobCreated;
-	FOnJobEvent OnJobCompleted;
+	FOnJobEventDispatcher OnJobCreated;
+	FOnJobEventDispatcher OnJobCompleted;
 	
 	GENERATED_BODY()
 	UJob* MakeJob(UTile* InTile);

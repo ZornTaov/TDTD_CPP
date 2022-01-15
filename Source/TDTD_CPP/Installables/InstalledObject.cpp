@@ -21,7 +21,7 @@ UInstalledObject* UInstalledObject::PlaceInstance(const UInstalledObject* Proto,
 	Obj->Width = Proto->Width;
 	Obj->Height = Proto->Height;
 	Obj->Tile = T;
-	if(Obj->Tile->PlaceObject(Obj))
+	if(!Obj->Tile->PlaceObject(Obj))
 	{
 		return nullptr;
 	}

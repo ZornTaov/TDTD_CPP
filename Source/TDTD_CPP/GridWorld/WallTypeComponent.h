@@ -38,14 +38,14 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 	
-	void UpdateNeighborWalls(UGridWorld* World, const FVector& InstanceLocation) const;
+	void UpdateNeighborWalls(const UTile* InTile) const;
 	UFUNCTION(BlueprintCallable, Category="Components|WallTypeComponent")
-	void AddWall(UGridWorld* World, const FVector& InstanceLocation, bool Propagate = true) const;
+	void AddWall(const UTile* InTile, bool Propagate = true) const;
 	UFUNCTION(BlueprintCallable, Category="Components|WallTypeComponent")
 	void AddWalls(UGridWorld* World, const TArray<FVector>& InstanceLocations, bool Propagate = true) const;
 	UFUNCTION(BlueprintCallable, Category = "Components|WallTypeComponent")
-	void RemoveWall(UGridWorld* World, const FVector InstanceLocation, const bool Propagate = true) const;
-	TArray<int> GetIndex(const UTile* TileData, uint8 OldTypeIndex) const;
+	void RemoveWall(const UTile* InTile, const bool Propagate = true) const;
+	TArray<int> GetIndex(const UTile* InTile, uint8 OldTypeIndex) const;
 	UFUNCTION(BlueprintCallable, Category="Components|WallTypeComponent")
 	void ClearInstances();
 	UFUNCTION(BlueprintCallable, Category = "Components|WallTypeComponent")
