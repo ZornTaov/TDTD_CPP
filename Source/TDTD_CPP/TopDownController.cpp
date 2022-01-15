@@ -32,12 +32,9 @@ ATopDownController::ATopDownController()
 	{
 		ActionDecal = DecalMaterialAsset.Object;
 	}
-	/*static ConstructorHelpers::FObjectFinder<UMaterialParameterCollection> MPCA(
-		TEXT("MaterialParameterCollection'/Game/Materials/CustomMouseCursorParams.CustomMouseCursorParams'"));
-	if (MPCA.Succeeded())
-	{*/
+	
 	this->MaterialParameterCollectionAsset = FSoftObjectPath(TEXT("/Game/Materials/CustomMouseCursorParams.CustomMouseCursorParams"));
-	//}
+	
 	static ConstructorHelpers::FClassFinder<UGameplayWidget> WidgetClass(TEXT("/Game/Hud/GwEditorWidget"));
 	if (WidgetClass.Succeeded())
 	{
@@ -58,10 +55,6 @@ void ATopDownController::BeginPlay()
 	//FindAllActors(GetWorld(), SelectedUnits);
 	//FString MyActorName = GetActorLabel();
 	//VARDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
-	/*TArray<AGridWorldController*> Temp;
-	FindAllActors(GetWorld(), Temp);
-	if(!ensure(Temp.Num() >= 1)) return;
-	WorldController = Temp[0];*/
 }
 
 AGridWorldController* ATopDownController::GetWorldController() const
@@ -153,7 +146,6 @@ void ATopDownController::SetupInputComponent()
 	//InputComponent->BindTouch(IE_Repeat, this, &ATopDownController::MoveToTouchLocation);
 
 	InputComponent->BindAction("ResetVR", IE_Pressed, this, &ATopDownController::OnResetVR);
-
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
@@ -198,7 +190,8 @@ void ATopDownController::InteractUnderMouseCursor()
 					//WorldController = Cast<AGridWorldController>(Hit.Actor);
 					for (FVector Loc : SelectedTilesLocations)
 					{
-						GetWorldController()->TileClicked(Loc,this->CurrentTileType);
+						UTile* Tile = GetWorldController()->GetTileAtWorldPos(Loc);
+						GetWorldController()->GetTileManager()->TileClicked(Tile,this->CurrentTileType);
 					}
 					SelectedTilesLocations.Empty();
 				}
@@ -209,7 +202,7 @@ void ATopDownController::InteractUnderMouseCursor()
 					//WorldController = Cast<AGridWorldController>(Hit.Actor);
 					for (FVector Loc : SelectedTilesLocations)
 					{
-						UTile* TileAt = GetWorldController()->GetGridWorld()->GetTileAtWorldPos(Loc - GetWorldController()->GetActorLocation());
+						UTile* TileAt = GetWorldController()->GetTileAtWorldPos(Loc);
 						const FName InstalledObjectType = this->CurrentInstalledObjectType;
 
 						if (UInstalledObject::IsValidPosition(TileAt) && TileAt->Jobs.Num() == 0)
@@ -309,7 +302,8 @@ void ATopDownController::RotateTileUnderMouseCursor() const
 			//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
 				//WorldController = Cast<AGridWorldController>(Hit.Actor);
-				GetWorldController()->TileRotate(Hit.Location.GridSnap(GetTileSize()));
+				UTile* Tile = WorldController->GetTileAtWorldPos(Hit.Location.GridSnap(GetTileSize()));
+				GetWorldController()->GetTileManager()->TileRotate(Tile);
 			}
 		}
 	}
@@ -348,7 +342,6 @@ void ATopDownController::StartDrag()
 				SelectionDecal->SetActorHiddenInGame(false);
 			}
 		}
-		
 	}
 }
 
@@ -408,8 +401,8 @@ void ATopDownController::WhileDragging()
 				for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
 				{
 					FVector Vector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z);
-					FVector Pos = (Vector - GetWorldController()->GetActorLocation())/GetWorldController()->GetGridWorld()->TileWidth;
-					Pos.Z = (Vector.Z - GetWorldController()->GetActorLocation().Z)/GetWorldController()->GetGridWorld()->TileThickness;
+					const FVector Pos = (Vector - GetWorldController()->GetActorLocation()) /
+						GetWorldController()->GetGridWorld()->TileSize();
 					if (CurrentMode == EGwSelectionMode::Installing)
 					{
 						if(X == StartX || X == EndX || Y == StartY || Y == EndY)
@@ -517,7 +510,6 @@ bool ATopDownController::EndDrag()
 				SelectedUnits.AddUnique(Cast<ABaseUnitCharacter>(OverlappedActor));
 				Cast<ABaseUnitCharacter>(OverlappedActor)->SelectionCursor->SetVisibility(true);
 			}
-	
 			return Current != SelectedUnits.Num();
 		}
 	default:
@@ -527,7 +519,6 @@ bool ATopDownController::EndDrag()
 	/*if(GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,
 			FString::Printf(TEXT("Selected from %d,%d to %d,%d Count: %d"), StartX, StartY, EndX, EndY, SelectedTilesLocations.Num()));*/
-
 }
 #pragma endregion CursorDrag
 
