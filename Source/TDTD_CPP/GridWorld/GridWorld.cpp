@@ -56,12 +56,12 @@ UTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
 	return Layer->GetTileAt(X, Y);
 }
 
-TArray<UTile*> UGridWorld::GetNeighborTiles(const FVector IndexPos)
+TArray<UTile*> UGridWorld::GetNeighborTiles(const FVector IndexPos, int Range)
 {
 	TArray<UTile*> NeighborTiles;
-	for (int y = -1; y <= 1; ++y)
+	for (int y = -Range; y <= Range; ++y)
 	{
-		for (int x = -1; x <= 1; ++x)
+		for (int x = -Range; x <= Range; ++x)
 		{
 			NeighborTiles.Add(this->GetTileAt(FVector(x, y, 0) + IndexPos));
 		}

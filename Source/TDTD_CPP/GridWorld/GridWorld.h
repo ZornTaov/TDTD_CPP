@@ -50,5 +50,5 @@ public:
 	UTile* GetTileAt(FVector Pos);
 	UTile* GetTileAt(int X, int Y, int Z);
 	
-	TArray<UTile*> GetNeighborTiles(const FVector IndexPos);
+	TArray<UTile*> GetNeighborTiles(const FVector IndexPos, int Range = 1);
 };
