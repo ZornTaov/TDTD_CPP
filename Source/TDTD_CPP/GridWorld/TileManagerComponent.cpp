@@ -84,9 +84,9 @@ void UTileManagerComponent::GetIndex(const UTile* TileData, const uint8 OldTypeI
 	}
 }
 
-void UTileManagerComponent::OnTileChanged(const UTile* TileData, ETileType NewType) const
+void UTileManagerComponent::OnTileChanged(UTile* InTile)
 {
-	ETileType OldType = TileData->GetType();
+	ETileType OldType = InTile->GetOldType();
 	const uint8 OldTypeIndex = static_cast<uint8>(OldType);
 	if (!FloorComponents.IsValidIndex(OldTypeIndex) || !IsValid(FloorComponents[OldTypeIndex]))
 	{
@@ -94,15 +94,15 @@ void UTileManagerComponent::OnTileChanged(const UTile* TileData, ETileType NewTy
 		return;
 	}
 
-	const uint8 NewTypeIndex = static_cast<uint8>(NewType);
+	const uint8 NewTypeIndex = static_cast<uint8>(InTile->GetType());
 	if (!FloorComponents.IsValidIndex(NewTypeIndex) || !IsValid(FloorComponents[NewTypeIndex]))
 	{
-		UE_LOG(LogActor, Error, TEXT("Index %d not found for FloorComponents, are we missing a component?"), NewTypeIndex, NewType)
+		UE_LOG(LogActor, Error, TEXT("Index %d not found for FloorComponents, are we missing a component?"), NewTypeIndex, InTile->GetType())
 		return;
 	}
 	//Get correct InstanceIndex
 	int Index = -1;
-	GetIndex(TileData, OldTypeIndex, Index);
+	GetIndex(InTile, OldTypeIndex, Index);
 	//Remove from old Type
 	if(FloorComponents[OldTypeIndex]->InstanceBodies.IsValidIndex(Index))
 	{
@@ -111,5 +111,5 @@ void UTileManagerComponent::OnTileChanged(const UTile* TileData, ETileType NewTy
 		FloorComponents[OldTypeIndex]->RemoveInstance(Index);
 	}
 	//Add to new Type
-	FloorComponents[NewTypeIndex]->AddInstance(FTransform(TileData->GetRot().Quaternion(), TileData->GetWorldPos()));
+	FloorComponents[NewTypeIndex]->AddInstance(FTransform(InTile->GetRot().Quaternion(), InTile->GetWorldPos()));
 }

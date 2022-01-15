@@ -23,6 +23,8 @@ void FGridWorldLayer::Init(UGridWorld* Gw, const int Index, const ETileType Init
 				//delete Tiles[X + Y * InnerWidth];
 				Tiles[X + Y * InnerWidth] = NewObject<UTile>(World);
 				Tiles[X + Y * InnerWidth]->Init(Gw, X, Y, Index, InitType);
+				FOnTileChanged TileChanged = FOnTileChanged::CreateUObject(World, &UGridWorld::OnTileChanged);
+				Tiles[X + Y * InnerWidth]->RegisterTileChanged(TileChanged);
 			}
 		}
 	}

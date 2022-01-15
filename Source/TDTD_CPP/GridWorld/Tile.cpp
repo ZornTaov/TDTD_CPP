@@ -21,7 +21,17 @@ ETileType UTile::GetType() const
 
 void UTile::SetType(const ETileType InType)
 {
+	OldType = this->Type;
 	this->Type = InType;
+	if (OnTileChangedCB.IsBound() && OldType != InType)
+	{
+		OnTileChangedCB.Broadcast(this);
+	}
+}
+
+ETileType UTile::GetOldType() const
+{
+	return OldType;
 }
 
 FTransform& UTile::GetPos()
@@ -78,4 +88,9 @@ bool UTile::PlaceObject(UInstalledObject* Obj)
 	// install new object
 	InstalledObject = Obj;
 	return true;
+}
+
+void UTile::RegisterTileChanged(const FOnTileChanged& Del)
+{
+	OnTileChangedCB.Add(Del);
 }

@@ -7,12 +7,12 @@
 
 void UGridWorld::RegisterFurnitureCreated(const FOnFurnitureCreated& Del)
 {
-	OnFurnitureCreated.Add(Del);
+	OnFurnitureCreatedCB.Add(Del);
 }
 
 void UGridWorld::RegisterTileChanged(const FOnTileChanged& Del)
 {
-	OnTileChanged.Add(Del);
+	OnTileChangedCB.Add(Del);
 }
 
 UTile* UGridWorld::GetTileAtWorldPos(const FVector InPos)
@@ -67,4 +67,9 @@ TArray<UTile*> UGridWorld::GetNeighborTiles(const FVector IndexPos, int Range)
 		}
 	}
 	return NeighborTiles;
+}
+
+void UGridWorld::OnTileChanged(UTile* Tile) const
+{
+	OnTileChangedCB.Broadcast(Tile);
 }

@@ -97,6 +97,8 @@ void AGridWorldController::InitInstances() const
 			}
 		}
 	}
+	FOnTileChanged TileChanged = FOnTileChanged::CreateUObject(TileManager, &UTileManagerComponent::OnTileChanged);
+	World->RegisterTileChanged(TileChanged);
 }
 
 void AGridWorldController::ClearAllInstances() const
@@ -176,8 +178,8 @@ UTile* AGridWorldController::UpdateTile(const ETileType NewType, UTile* Tile) co
 	if (Tile)
 	{
 		//turn into a callback
-		TileManager->OnTileChanged(Tile, NewType);
 		Tile->SetType(NewType);
+		TileManager->OnTileChanged(Tile);
 	}
 	return Tile;
 }

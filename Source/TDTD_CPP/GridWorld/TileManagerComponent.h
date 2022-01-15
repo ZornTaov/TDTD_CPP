@@ -21,7 +21,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
 	TArray<UInstancedStaticMeshComponent*> FloorComponents;
 	UFUNCTION()
-	void OnTileChanged(const UTile* TileDataRef, ETileType NewType) const;
+	void OnTileChanged(UTile* InTile);
 
 	void InitFloorComponents(const USceneComponent* ParentComp);
 	void ClearTileInstances();

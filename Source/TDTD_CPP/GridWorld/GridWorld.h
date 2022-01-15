@@ -14,7 +14,6 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnTileChangedDispatcher, UTile*);
 using FOnFurnitureCreated = FOnFurnitureCreatedDispatcher::FDelegate;
 using FOnTileChanged = FOnTileChangedDispatcher::FDelegate;
 
-
 /**
  * 
  */
@@ -27,8 +26,8 @@ protected:
 	TArray<FGridWorldLayer> Layers;
 public:
 
-	FOnFurnitureCreatedDispatcher OnFurnitureCreated;
-	FOnTileChangedDispatcher OnTileChanged;
+	FOnFurnitureCreatedDispatcher OnFurnitureCreatedCB;
+	FOnTileChangedDispatcher OnTileChangedCB;
 	void RegisterFurnitureCreated(const FOnFurnitureCreated& Del);
 	void RegisterTileChanged(const FOnTileChanged& Del);
 	UTile* GetTileAtWorldPos(FVector InPos);
@@ -52,4 +51,5 @@ public:
 	UTile* GetTileAt(int X, int Y, int Z);
 	
 	TArray<UTile*> GetNeighborTiles(const FVector IndexPos, int Range = 1);
+	void OnTileChanged(UTile* Tile) const;
 };

@@ -39,10 +39,15 @@ class TDTD_CPP_API UTile : public UObject
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ETileType Type = ETileType::Empty;
+	ETileType OldType = ETileType::Empty;
+public:
+	ETileType GetOldType() const;
+protected:
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	//EWallType WallType = EWallType::Empty;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	FTransform Pos = FTransform::Identity;
+	FOnTileChangedDispatcher OnTileChangedCB;
 
 public:
 	void Init(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
@@ -63,5 +68,6 @@ public:
 	FRotator GetRot() const;
 	void SetRot(const FRotator& InRot);
 	bool PlaceObject(UInstalledObject* Obj);
+	void RegisterTileChanged(const FOnTileChanged& Del);
 };
 
