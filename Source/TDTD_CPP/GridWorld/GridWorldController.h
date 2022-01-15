@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "TileType.h"
 #include "JobSystem/JobSystem.h"
 #include "GridWorldController.generated.h"
 

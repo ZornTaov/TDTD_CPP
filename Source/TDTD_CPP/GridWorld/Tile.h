@@ -3,18 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TileType.h"
 #include "Engine/DataTable.h"
 #include "Tile.generated.h"
 
 class UJob;
 DECLARE_LOG_CATEGORY_EXTERN(LogTile, Log, All);
 
-
 class UInstalledObject;
 class UGridWorld;
-
-UENUM(BlueprintType)
-enum class ETileType : uint8 { Empty, Ground, Floor, Ramp };
 
 USTRUCT(BlueprintType)
 struct FTileStruct : public FTableRowBase

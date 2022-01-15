@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Tile.h"
+#include "TileType.h"
 #include "VarDump.h"
 #include "GridWorldLayer.generated.h"
 
 class UGridWorld;
-
+class UTile;
 /**
  * 
  */

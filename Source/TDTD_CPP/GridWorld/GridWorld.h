@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GridWorldLayer.h"
+#include "TileType.h"
 #include "GridWorld.generated.h"
 
 class UTile;

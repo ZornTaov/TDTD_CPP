@@ -3,6 +3,7 @@
 
 #include "GridWorldLayer.h"
 #include "GridWorld.h"
+#include "Tile.h"
 #include "VarDump.h"
 
 void FGridWorldLayer::Init(UGridWorld* Gw, const int Index, const ETileType InitType)
