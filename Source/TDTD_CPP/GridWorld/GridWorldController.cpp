@@ -203,6 +203,39 @@ UTile* AGridWorldController::GetTileAtWorldPos(const FVector& Loc) const
 	return GetGridWorld()->GetTileAtWorldPos(Loc - GetActorLocation());
 }
 
+void AGridWorldController::TileClicked(UTile* Tile, ETileType NewType) const
+{
+	if (!Tile)
+	{
+		return;
+	}
+	if (Tile->GetType() != NewType)
+	{
+		UpdateTile(NewType, Tile);
+	}
+}
+
+void AGridWorldController::TileRotate(UTile* Tile) const
+{
+	if (!Tile)
+	{
+		return;
+	}
+	Tile->SetRot(Tile->GetRot()+FRotator(0,90,0));
+	UpdateTile(Tile->GetType(), Tile);
+}
+
+UTile* AGridWorldController::UpdateTile(const ETileType NewType, UTile* Tile) const
+{
+	if (Tile)
+	{
+		//turn into a callback
+		TileManager->OnTileChanged(Tile, NewType);
+		Tile->SetType(NewType);
+	}
+	return Tile;
+}
+
 // Called every frame
 // ReSharper disable once CppParameterMayBeConst
 void AGridWorldController::Tick(float DeltaTime)

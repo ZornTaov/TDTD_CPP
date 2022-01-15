@@ -67,28 +67,6 @@ void UTileManagerComponent::ClearTileInstances()
 	}
 }
 
-void UTileManagerComponent::TileClicked(UTile* Tile, ETileType NewType) const
-{
-	if (!Tile)
-	{
-		return;
-	}
-	if (Tile->GetType() != NewType)
-	{
-		UpdateTile(NewType, Tile);
-	}
-}
-
-void UTileManagerComponent::TileRotate(UTile* Tile) const
-{
-	if (!Tile)
-	{
-		return;
-	}
-	Tile->SetRot(Tile->GetRot()+FRotator(0,90,0));
-	UpdateTile(Tile->GetType(), Tile);
-}
-
 void UTileManagerComponent::GetIndex(const UTile* TileData, const uint8 OldTypeIndex, int& Index) const
 {
 	if(FloorComponents.IsValidIndex(OldTypeIndex) && IsValid(FloorComponents[OldTypeIndex]))
@@ -134,15 +112,4 @@ void UTileManagerComponent::OnTileChanged(const UTile* TileData, ETileType NewTy
 	}
 	//Add to new Type
 	FloorComponents[NewTypeIndex]->AddInstance(FTransform(TileData->GetRot().Quaternion(), TileData->GetWorldPos()));
-}
-
-UTile* UTileManagerComponent::UpdateTile(const ETileType NewType, UTile* Tile) const
-{
-	if (Tile)
-	{
-		//turn into a callback
-		OnTileChanged(Tile, NewType);
-		Tile->SetType(NewType);
-	}
-	return Tile;
 }

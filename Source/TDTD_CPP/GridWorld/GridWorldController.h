@@ -70,4 +70,7 @@ public:
 	void InitInstance();
 	void ClearAllInstances();
 	void ClearWallInstances(TArray<UWallTypeComponent*>& Components);
+	void TileClicked(UTile* Tile, ETileType NewType) const;
+	void TileRotate(UTile* Tile) const;
+	UTile* UpdateTile(ETileType NewType, UTile* InTile = nullptr) const;
 };

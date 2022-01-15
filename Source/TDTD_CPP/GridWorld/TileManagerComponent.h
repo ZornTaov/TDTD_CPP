@@ -23,11 +23,8 @@ public:
 	UFUNCTION()
 	void OnTileChanged(const UTile* TileDataRef, ETileType NewType) const;
 
-	UTile* UpdateTile(ETileType NewType, UTile* InTile = nullptr) const;
 	void InitFloorComponents(const USceneComponent* ParentComp);
 	void ClearTileInstances();
-	void TileClicked(UTile* Tile, ETileType NewType) const;
-	void TileRotate(UTile* Tile) const;
 	void GetIndex(const UTile* TileData, uint8 OldTypeIndex, int& Index) const;
 	void InitTileInstance(FTransform TileTransform, UTile* Tile);
 
