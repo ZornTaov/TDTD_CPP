@@ -69,5 +69,6 @@ public:
 	void SetRot(const FRotator& InRot);
 	bool PlaceObject(UInstalledObject* Obj);
 	void RegisterTileChanged(const FOnTileChanged& Del);
+	bool IsNeighbour(UTile* InTile, bool DiagOkay);
 };
 

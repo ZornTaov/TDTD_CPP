@@ -6,6 +6,9 @@
 #include "GridWorld/Tile.h"
 #include "InstalledObject.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FPositionValidation, UTile*, bool&);
+typedef FPositionValidation::FDelegate FPositionValidationDelegate;
+
 /**
  * 
  */

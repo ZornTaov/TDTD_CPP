@@ -93,3 +93,27 @@ void UTile::RegisterTileChanged(const FOnTileChanged& Del)
 {
 	OnTileChangedCB.Add(Del);
 }
+
+bool UTile::IsNeighbour(UTile* InTile, bool DiagOkay)
+{
+	if (this->GetIndexPos().X == InTile->GetIndexPos().X &&
+		FMath::Abs(this->GetIndexPos().Y - InTile->GetIndexPos().Y) == 1)
+		return true;
+
+	if (this->GetIndexPos().Y == InTile->GetIndexPos().Y &&
+		FMath::Abs(this->GetIndexPos().X - InTile->GetIndexPos().X) == 1)
+		return true;
+
+	if (DiagOkay)
+	{
+		if (this->GetIndexPos().X == InTile->GetIndexPos().X-1 &&
+			FMath::Abs(this->GetIndexPos().Y - InTile->GetIndexPos().Y) == 1)
+				return true;
+		
+		if (this->GetIndexPos().X == InTile->GetIndexPos().X+1 &&
+			FMath::Abs(this->GetIndexPos().Y - InTile->GetIndexPos().Y) == 1)
+				return true;
+	}
+	
+	return false;
+}
