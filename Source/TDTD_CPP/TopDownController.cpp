@@ -163,7 +163,7 @@ void ATopDownController::OnResetVR()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void ATopDownController::OnWallInstallDone(UJob* Job, FName InstalledObjectType)
 {
-	Job->GetTile()->Jobs.Remove(Job);
+	Job->GetTile()->PendingJobs.Remove(Job);
 	this->GetWorldController()->InstallWallToTile(Job->GetTile(), InstalledObjectType);
 }
 
@@ -211,13 +211,13 @@ void ATopDownController::InteractUnderMouseCursor()
 						UTile* TileAt = GetWorldController()->GetTileAtWorldPos(Loc);
 						const FName InstalledObjectType = this->CurrentInstalledObjectType;
 
-						if (UInstalledObject::IsValidPosition(TileAt,InstalledObjectType.IsEqual(FName("Empty"))) && TileAt->Jobs.Num() == 0)
+						if (UInstalledObject::IsValidPosition(TileAt,InstalledObjectType.IsEqual(FName("Empty"))) && TileAt->PendingJobs.Num() == 0)
 						{
 							UJob* Job = GetWorldController()->GetJobSystem()->MakeJob(TileAt);
-							TileAt->Jobs.Add(Job);
+							TileAt->PendingJobs.Add(Job);
 							
 							Job->OnJobComplete.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});
-							Job->OnJobCancel.AddLambda([this](UJob* InJob){InJob->GetTile()->Jobs.Remove(InJob);});
+							Job->OnJobCancel.AddLambda([this](UJob* InJob){InJob->GetTile()->PendingJobs.Remove(InJob);});
 						}
 					}
 					SelectedTilesLocations.Empty();

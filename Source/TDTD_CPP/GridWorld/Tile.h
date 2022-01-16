@@ -57,7 +57,7 @@ public:
 	UInstalledObject* InstalledObject = nullptr;
 
 	UPROPERTY()
-	TArray<UJob*> Jobs;
+	TArray<UJob*> PendingJobs;
 	
 	FTransform& GetPos();
 	ETileType GetType() const;
