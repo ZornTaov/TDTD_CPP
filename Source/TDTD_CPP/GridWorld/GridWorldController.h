@@ -8,11 +8,9 @@
 #include "JobSystem/JobSystem.h"
 #include "GridWorldController.generated.h"
 
-enum class ETileType : uint8;
-class UTileManagerComponent;
 class UGridWorld;
+class UTileManagerComponent;
 class UWallManagerComponent;
-class ATileActor;
 UCLASS()
 class TDTD_CPP_API AGridWorldController : public AActor 
 {
