@@ -132,6 +132,7 @@ void UGameplayWidget::OnModeChangeClickedEvent(UIconButtonWidget* Widget)
 	}
 	else
 	{
+		// Backup Code
 		switch (TopDownCameraController->CurrentMode) {
 		case EGwSelectionMode::Building:
 			Mode = EGwSelectionMode::Installing;
@@ -153,7 +154,6 @@ void UGameplayWidget::OnModeChangeClickedEvent(UIconButtonWidget* Widget)
 	Inst->SetVectorParameterValue(FName("Highlight Color"), Color);
 	Widget->Icon->SetColorAndOpacity(Color);
 	ModeWidgetSwitcher->SetActiveWidgetIndex(static_cast<uint8>(Mode));
-			
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -182,6 +182,5 @@ void UGameplayWidget::OnWallClickedEvent(ETileType Type, FName IOName)
 		return;
 	}
 	TopDownCameraController->CurrentInstalledObjectType = IOName;
-	UE_LOG(LogTemp, Display, TEXT("%s"), *IOName.ToString());
-	
+	//UE_LOG(LogTemp, Display, TEXT("%s"), *IOName.ToString());
 }

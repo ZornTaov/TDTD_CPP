@@ -166,7 +166,7 @@ void ATopDownController::OnWallInstallDone(UJob* Job, FName InstalledObjectType)
 	Job->GetTile()->PendingJobs.Remove(Job);
 	this->GetWorldController()->InstallWallToTile(Job->GetTile(), InstalledObjectType);
 }
-
+// TODO: Too monolithic, break up
 void ATopDownController::InteractUnderMouseCursor()
 {
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
@@ -295,7 +295,6 @@ void ATopDownController::SetNewMoveDestination(const FVector DestLocation)
 	}
 }
 
-
 void ATopDownController::RotateTileUnderMouseCursor() const
 {
 	FHitResult Hit;
@@ -331,7 +330,7 @@ void ATopDownController::StartDrag()
 			//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
 				DragStartPosition = Hit.Location.GridSnap(GetTileSize());
-				//Acted = true;
+				Acted = true;
 			}
 			break;
 		case EGwSelectionMode::Unit: 
@@ -351,6 +350,7 @@ void ATopDownController::StartDrag()
 	}
 }
 
+// TODO: Too monolithic, break up
 void ATopDownController::WhileDragging()
 {
 	FHitResult Hit;
@@ -446,6 +446,7 @@ void ATopDownController::WhileDragging()
 	}
 }
 
+// TODO: Too monolithic, break up
 bool ATopDownController::EndDrag()
 {
 	if (!bIsDragging)
@@ -558,7 +559,9 @@ void ATopDownController::OnCancelOrExitPressed()
 		if (SelectionDecal)
 		{
 			SelectionDecal->SetActorHiddenInGame(true);
+			return;
 		}
 	}
+	// open pause menu
 }
 #pragma endregion OnPressedReleased

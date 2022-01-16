@@ -22,7 +22,7 @@ void UIconButtonWidget::OnButtonClicked()
 {
 	OnClickedEvent.Broadcast(Type, InstalledObjectName);
 	OnModeClickedEvent.Broadcast(this);
-	UE_LOG(LogTemp, Verbose, TEXT("Clicked: %s"), *GetFName().ToString());
+	//UE_LOG(LogTemp, Verbose, TEXT("Clicked: %s"), *GetFName().ToString());
 	return;
 	/*APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
 	ATopDownController* TopDownCameraController = Cast<ATopDownController>(PlayerController);
