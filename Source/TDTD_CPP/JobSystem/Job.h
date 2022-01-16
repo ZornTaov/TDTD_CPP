@@ -12,7 +12,7 @@ using FOnJobEvent = FOnJobEventDispatcher::FDelegate;
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class TDTD_CPP_API UJob : public UObject
 {
 	GENERATED_BODY()
@@ -24,6 +24,8 @@ public:
 	UJob() {  }
 	UPROPERTY()
 	float JobTime;
+	UPROPERTY()
+	FName JobName;
 	UTile* GetTile() const { return this->Tile; }
 	
 	FOnJobEventDispatcher OnJobComplete;
@@ -32,6 +34,7 @@ public:
 	void Init(UTile* InTile, float InJobTime = 1.0f);
 	template<typename UserClass>
 	void RegisterDone(UserClass* InUserObject, typename TMemFunPtrType<false, UserClass, void(UJob*)>::Type InFunc);
+	UFUNCTION(BlueprintCallable)
 	void DoWork(float WorkTime);
 	void CancelJob();
 	

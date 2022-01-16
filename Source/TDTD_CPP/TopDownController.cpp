@@ -214,6 +214,7 @@ void ATopDownController::InteractUnderMouseCursor()
 						if (UInstalledObject::IsValidPosition(TileAt,InstalledObjectType.IsEqual(FName("Empty"))) && TileAt->PendingJobs.Num() == 0)
 						{
 							UJob* Job = GetWorldController()->GetJobSystem()->MakeJob(TileAt);
+							Job->JobName = InstalledObjectType;
 							TileAt->PendingJobs.Add(Job);
 							
 							Job->OnJobComplete.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});

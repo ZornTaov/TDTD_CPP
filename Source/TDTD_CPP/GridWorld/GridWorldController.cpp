@@ -212,8 +212,10 @@ void AGridWorldController::DrawTileDebug() const
 	{
 		if (Tile)
 			DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100) + GetActorLocation(), FString::Printf(
-					  TEXT("Index:%s\nTileType:%s\nInstalledType:%s"), *Tile->GetIndexPos().ToCompactString(),
+					  TEXT("Index:%s\nTileType:%s\nInstalledType:%s\nJob:%s"), *Tile->GetIndexPos().ToCompactString(),
 					  *GetEnumName(Tile->GetType()),
-					  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT("Empty"))));
+					  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT("Empty")),
+					  *(Tile->PendingJobs.IsValidIndex(0) ? Tile->PendingJobs[0]->JobName.ToString() : TEXT("None")))
+					  );
 	}
 }

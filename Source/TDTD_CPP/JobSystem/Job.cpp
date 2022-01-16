@@ -2,6 +2,8 @@
 
 #include "Job.h"
 
+#include "GridWorld/Tile.h"
+
 void UJob::Init(UTile* InTile, float InJobTime)
 {
 	Tile=InTile;
@@ -20,6 +22,7 @@ void UJob::DoWork(float WorkTime)
 	JobTime -= WorkTime;
 	if (JobTime <= 0)
 	{
+		UE_LOG(LogActor, Display, TEXT("Job's Done! Tile: %s"), *Tile->GetIndexPos().ToCompactString())
 		OnJobComplete.Broadcast(this);
 	}
 }

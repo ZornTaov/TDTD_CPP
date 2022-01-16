@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "GameFramework/Character.h"
 #include "BaseUnitCharacter.generated.h"
 
@@ -31,6 +32,11 @@ public:
 	UPROPERTY()
 	AGridWorldController* GridWorldController;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UBehaviorTree* BTree;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UBlackboardComponent* AIBlackboard;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

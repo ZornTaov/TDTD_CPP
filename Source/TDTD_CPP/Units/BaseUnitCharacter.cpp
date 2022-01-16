@@ -2,6 +2,10 @@
 
 
 #include "BaseUnitCharacter.h"
+
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Camera/CameraComponent.h"
 #include "Components/DecalComponent.h"
@@ -10,6 +14,7 @@
 #include "Materials/Material.h"
 #include "Kismet/GameplayStatics.h"
 #include "GridWorld/GridWorldController.h"
+#include "GridWorld/Tile.h"
 #include "JobSystem/Job.h"
 
 // Sets default values
@@ -53,7 +58,13 @@ ABaseUnitCharacter::ABaseUnitCharacter()
 void ABaseUnitCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (BTree)
+	{
+		AAIController* AiController = GetController<AAIController>();
+		AiController->RunBehaviorTree(BTree);
+		AIBlackboard = UAIBlueprintHelperLibrary::GetBlackboard(this);
+		AIBlackboard->SetValueAsVector(FName("TargetDestination"), GetActorLocation());
+	}
 }
 
 // Called every frame
@@ -69,6 +80,7 @@ void ABaseUnitCharacter::Tick(float DeltaTime)
 			TargetTile = MyJob->GetTile();
 			MyJob->OnJobComplete.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
 			MyJob->OnJobCancel.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
+			AIBlackboard->SetValueAsVector(FName("TargetDestination"), MyJob->GetTile()->GetWorldPos() + GridWorldController->GetActorLocation());
 		}
 	}
 }

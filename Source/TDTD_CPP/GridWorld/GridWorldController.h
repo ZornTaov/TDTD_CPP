@@ -30,6 +30,7 @@ public:
 	UGridWorld* GetGridWorld() const;
 	void SetGridWorld(UGridWorld* const InWorld);
 	void InstallWallToTile(UTile* TileAt, FName InstalledObjectName, bool Remove = false);
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UTile* GetTileAtWorldPos(const FVector& Loc) const;
 protected:
 	UPROPERTY(Instanced, NoClear)
