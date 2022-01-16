@@ -6,6 +6,9 @@
 #include "GameFramework/Character.h"
 #include "BaseUnitCharacter.generated.h"
 
+class AGridWorldController;
+class UTile;
+class UJob;
 UCLASS()
 class TDTD_CPP_API ABaseUnitCharacter : public ACharacter
 {
@@ -18,6 +21,15 @@ public:
 	/** A decal that projects to the cursor location. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* SelectionCursor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UJob* MyJob = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UTile* TargetTile;
+
+	UPROPERTY()
+	AGridWorldController* GridWorldController;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -30,4 +42,5 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void OnJobEnded(UJob* Job);
 };

@@ -21,4 +21,5 @@ public:
 	
 	GENERATED_BODY()
 	UJob* MakeJob(UTile* InTile);
+	UJob* GetJob();
 };

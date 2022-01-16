@@ -10,3 +10,13 @@ UJob* UJobSystem::MakeJob(UTile* InTile)
 	OnJobCreated.Broadcast(Job);
 	return Job;
 }
+
+UJob* UJobSystem::GetJob()
+{
+	UJob* Job = nullptr;
+	if (!JobQueue.Dequeue(Job))
+	{
+		return nullptr;
+	}
+	return Job;
+}

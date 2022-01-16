@@ -8,6 +8,7 @@
 #include "Units/BaseUnitCharacter.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "TDTDExtensionHelpers.h"
 #include "VarDump.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/TDCameraControllerComponent.h"
@@ -52,7 +53,12 @@ void ATopDownController::BeginPlay()
 	}
 	GameplayWidget = CreateWidget<UGameplayWidget>(this, this->GameplayWidgetClass);
 	GameplayWidget->AddToViewport();
-	//FindAllActors(GetWorld(), SelectedUnits);
+	TArray<ABaseUnitCharacter*> PreSpawnedUnits;
+	FindAllActors(GetWorld(), PreSpawnedUnits);
+	for (ABaseUnitCharacter* PreSpawnedUnit : PreSpawnedUnits)
+	{
+		PreSpawnedUnit->GridWorldController = GetWorldController();
+	}
 	//FString MyActorName = GetActorLabel();
 	//VARDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
 }

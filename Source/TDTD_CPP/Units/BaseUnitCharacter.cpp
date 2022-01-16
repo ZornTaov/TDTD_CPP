@@ -9,6 +9,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Materials/Material.h"
 #include "Kismet/GameplayStatics.h"
+#include "GridWorld/GridWorldController.h"
+#include "JobSystem/Job.h"
 
 // Sets default values
 ABaseUnitCharacter::ABaseUnitCharacter()
@@ -59,6 +61,16 @@ void ABaseUnitCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!MyJob)
+	{
+		MyJob = GridWorldController->GetJobSystem()->GetJob();
+		if (MyJob)
+		{
+			TargetTile = MyJob->GetTile();
+			MyJob->OnJobComplete.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
+			MyJob->OnJobCancel.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -66,5 +78,16 @@ void ABaseUnitCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void ABaseUnitCharacter::OnJobEnded(UJob* Job)
+{
+	if (Job != MyJob)
+	{
+		//told about a job that isn't this character's, ignore.
+		return;
+	}
+	
+	MyJob = nullptr;
 }
 
