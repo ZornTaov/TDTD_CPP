@@ -32,6 +32,8 @@ public:
 	void InstallWallToTile(UTile* TileAt, FName InstalledObjectName, bool Remove = false);
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UTile* GetTileAtWorldPos(const FVector& Loc) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	TArray<UTile*> GetNeighborTiles(const FVector IndexPos, int Range = 1) const;
 protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WorldRootComponent;

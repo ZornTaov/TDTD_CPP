@@ -30,7 +30,6 @@ AGridWorldController::AGridWorldController()
 	FloorsRootComponent->SetupAttachment(WorldRootComponent);
 	WallsRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("WallsRootComponent"));
 	WallsRootComponent->SetupAttachment(WorldRootComponent);
-	
 }
 
 UJobSystem* AGridWorldController::GetJobSystem() const
@@ -149,6 +148,11 @@ void AGridWorldController::InstallWallToTile(UTile* TileAt, const FName Installe
 UTile* AGridWorldController::GetTileAtWorldPos(const FVector& Loc) const
 {
 	return GetGridWorld()->GetTileAtWorldPos(Loc - GetActorLocation());
+}
+
+TArray<UTile*> AGridWorldController::GetNeighborTiles(const FVector IndexPos, const int Range) const
+{
+	return GetGridWorld()->GetNeighborTiles(IndexPos, Range);
 }
 
 void AGridWorldController::TileClicked(UTile* Tile, ETileType NewType) const
