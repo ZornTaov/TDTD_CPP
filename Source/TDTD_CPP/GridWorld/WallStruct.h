@@ -56,6 +56,8 @@ struct FWallStruct : public FTableRowBase
 	UStaticMesh* OuterCornerMesh = nullptr;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UTexture* Icon = nullptr;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UStaticMesh* GhostPrototype = nullptr;
 
 	static bool IsConnected(TArray<UTile*>& Tiles, ETileDirection TileDirection);
 	static TMap<EWallQuadrant, EWallSubTileType> GetSubTileTypes(TArray<UTile*>& Tiles);

@@ -21,6 +21,8 @@ public:
 	UInstancedStaticMeshComponent* MiddleISM;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UInstancedStaticMeshComponent* OuterCornerISM;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UInstancedStaticMeshComponent* GhostPrototypeISM;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, EditFixedSize, Instanced, NoClear)
 	TArray<UInstancedStaticMeshComponent*> WallSubComponents;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -51,5 +53,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Components|WallTypeComponent")
 	int32 GetInstanceCount() const;
 	//void PartialNavigationUpdate(int32 InstanceIdx);
-
+	void AddGhostWall(const UTile* InTile) const;
+	void RemoveGhostWall(const UTile* InTile) const;
+	int GetGhostIndex(const UTile* InTile) const;
 };

@@ -52,15 +52,29 @@ void UWallManagerComponent::PlaceWall(UTile* TileAt, FName NameToCheck, bool Rem
 	}
 	if (IsValid(WallPlacer))
 	{
-		
 		if (Remove)
 		{
 			WallPlacer->RemoveWall(TileAt);
 		}
 		else
 		{
+			WallPlacer->RemoveGhostWall(TileAt);
 			WallPlacer->AddWall(TileAt);
 		}
+	}
+}
+
+void UWallManagerComponent::PlaceGhostWall(UTile* TileAt, const FName& InstalledObjectName)
+{
+	const UWallTypeComponent* WallPlacer = nullptr;
+	UWallTypeComponent** Res = WallComponents.FindByPredicate([InstalledObjectName](const UWallTypeComponent* WallType){return WallType->WallTypeName == InstalledObjectName;});
+	if (Res && *Res)
+	{
+		WallPlacer = *Res;
+	}
+	if (IsValid(WallPlacer))
+	{
+		WallPlacer->AddGhostWall(TileAt);
 	}
 }
 
@@ -93,6 +107,7 @@ void UWallManagerComponent::InitWallComponents(const USceneComponent* ParentComp
 				Child->MiddleISM->SetStaticMesh(OutWallRowArray[i]->MiddleMesh);
 				Child->OuterCornerISM->SetStaticMesh(OutWallRowArray[i]->OuterCornerMesh);
 				Child->WallTypeName = WallTileDataTable->GetRowNames()[i];
+				Child->GhostPrototypeISM->SetStaticMesh(OutWallRowArray[i]->GhostPrototype);
 				WallComponents[i] = Child;
 			}
 		}

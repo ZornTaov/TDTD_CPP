@@ -17,10 +17,12 @@ UWallTypeComponent::UWallTypeComponent()
 	MiddleISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MiddleISM"));
 	InnerCornerISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("InnerCornerISM"));
 	OuterCornerISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("OuterCornerISM"));
+	GhostPrototypeISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("GhostPrototypeISM"));
 	FillISM->SetupAttachment(this);
 	MiddleISM->SetupAttachment(this);
 	InnerCornerISM->SetupAttachment(this);
 	OuterCornerISM->SetupAttachment(this);
+	GhostPrototypeISM->SetupAttachment(this);
 
 	WallSubComponents.Add(FillISM);
 	WallSubComponents.Add(MiddleISM);
@@ -168,6 +170,7 @@ void UWallTypeComponent::ClearInstances()
 	InnerCornerISM->ClearInstances();
 	MiddleISM->ClearInstances();
 	OuterCornerISM->ClearInstances();
+	GhostPrototypeISM->ClearInstances();
 }
 
 int32 UWallTypeComponent::GetInstanceCount() const
@@ -176,6 +179,46 @@ int32 UWallTypeComponent::GetInstanceCount() const
 			InnerCornerISM->GetInstanceCount() + 
 			MiddleISM->GetInstanceCount() + 
 			OuterCornerISM->GetInstanceCount(); 
+}
+
+void UWallTypeComponent::AddGhostWall(const UTile* InTile) const
+{
+	const FVector Loc = InTile->GetWorldPos();
+	const int GhostIndex = GetGhostIndex(InTile);
+	if (GhostPrototypeISM->InstanceBodies.IsValidIndex(GhostIndex))
+	{
+		UE_LOG(LogTile, Warning, TEXT("Ghost at %s already exists, did you mean to add here?"),
+			*Loc.ToCompactString());
+		return;
+	}
+	GhostPrototypeISM->AddInstanceWorldSpace(FTransform(Loc));
+}
+
+void UWallTypeComponent::RemoveGhostWall(const UTile* InTile) const
+{
+	const int GhostIndex = GetGhostIndex(InTile);
+	if (!GhostPrototypeISM->InstanceBodies.IsValidIndex(GhostIndex))
+	{
+		UE_LOG(LogTile, Warning, TEXT("Ghost at %s does not exist, did you mean to remove here?"),
+			*InTile->GetWorldPos().ToCompactString());
+		return;
+	}
+	GhostPrototypeISM->RemoveInstance(GhostIndex);
+	
+}
+
+int UWallTypeComponent::GetGhostIndex(const UTile* InTile) const
+{
+	for (int i = 0; i < GhostPrototypeISM->GetInstanceCount(); ++i)
+	{
+		FTransform Transform;
+		GhostPrototypeISM->GetInstanceTransform(i, Transform, true);
+		if (Transform.GetLocation().Equals(InTile->GetWorldPos(), 10))
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 /*void UWallTypeComponent::PartialNavigationUpdate(int32 InstanceIdx)

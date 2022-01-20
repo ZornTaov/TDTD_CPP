@@ -216,7 +216,7 @@ void ATopDownController::InteractUnderMouseCursor()
 							UJob* Job = GetWorldController()->GetJobSystem()->MakeJob(TileAt);
 							Job->JobName = InstalledObjectType;
 							TileAt->PendingJobs.Add(Job);
-							
+							GetWorldController()->PlaceGhost(TileAt, InstalledObjectType);
 							Job->OnJobComplete.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});
 							Job->OnJobCancel.AddLambda([this](UJob* InJob){InJob->GetTile()->PendingJobs.Remove(InJob);});
 						}

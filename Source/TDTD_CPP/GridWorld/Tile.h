@@ -60,15 +60,19 @@ public:
 	TArray<UJob*> PendingJobs;
 	
 	FTransform& GetPos();
+	UFUNCTION(BlueprintCallable)
 	ETileType GetType() const;
 	void SetType(ETileType InType);
+	UFUNCTION(BlueprintCallable)
 	FVector GetWorldPos() const;
+	UFUNCTION(BlueprintCallable)
 	FVector GetIndexPos() const;
 	void SetPos(const FVector& InPos);
 	FRotator GetRot() const;
 	void SetRot(const FRotator& InRot);
 	bool PlaceObject(UInstalledObject* Obj);
 	void RegisterTileChanged(const FOnTileChanged& Del);
+	UFUNCTION(BlueprintCallable)
 	bool IsNeighbour(UTile* InTile, bool DiagOkay);
 };
 

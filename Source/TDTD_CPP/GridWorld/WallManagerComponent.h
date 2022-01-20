@@ -33,4 +33,5 @@ public:
 	void InitWallComponents(const USceneComponent* ParentComp);
 	void ClearWallInstances();
 	void PlaceWall(UTile* TileAt, FName NameToCheck, bool Remove = false);
+	void PlaceGhostWall(UTile* TileAt, const FName& InstalledObjectName);
 };

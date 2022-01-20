@@ -155,6 +155,14 @@ TArray<UTile*> AGridWorldController::GetNeighborTiles(const FVector IndexPos, co
 	return GetGridWorld()->GetNeighborTiles(IndexPos, Range);
 }
 
+void AGridWorldController::PlaceGhost(UTile* InTile, const FName& InstalledObjectName)
+{
+	if (InstalledObjectName.ToString().Contains("Wall"))
+	{
+		GetWallManager()->PlaceGhostWall(InTile, InstalledObjectName);
+	}
+}
+
 void AGridWorldController::TileClicked(UTile* Tile, ETileType NewType) const
 {
 	if (!Tile)
