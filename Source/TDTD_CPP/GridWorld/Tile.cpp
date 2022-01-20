@@ -42,7 +42,7 @@ FVector UTile::GetWorldPos() const
 {
 	if (World)
 	{
-		return this->GetIndexPos() * World->TileSize();
+		return this->GetIndexPos() * World->TileSize() + World->GetOwner()->GetActorLocation();
 	}
 	else
 	{

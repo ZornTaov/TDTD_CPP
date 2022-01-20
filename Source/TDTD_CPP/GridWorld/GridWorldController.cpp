@@ -189,7 +189,7 @@ UTile* AGridWorldController::UpdateTile(const ETileType NewType, UTile* Tile) co
 void AGridWorldController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	DrawTileDebug();
+	//DrawTileDebug();
 }
 
 void AGridWorldController::DrawDebug(const FVector Pos, const FString Str) const
@@ -211,7 +211,7 @@ void AGridWorldController::DrawTileDebug() const
 	for (const UTile* Tile : Tiles)
 	{
 		if (Tile)
-			DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100) + GetActorLocation(), FString::Printf(
+			DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100), FString::Printf(
 					  TEXT("Index:%s\nTileType:%s\nInstalledType:%s\nJob:%s"), *Tile->GetIndexPos().ToCompactString(),
 					  *GetEnumName(Tile->GetType()),
 					  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT("Empty")),

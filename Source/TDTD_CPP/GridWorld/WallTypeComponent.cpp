@@ -71,27 +71,27 @@ void UWallTypeComponent::AddWall(const UTile* InTile, const bool Propagate) cons
 	{
 		switch (WallSubTiles[Quadrant]) {
 		case Fill:
-			FillISM->AddInstance(FTransform(
+			FillISM->AddInstanceWorldSpace(FTransform(
 				FWallStruct::GetQuadrantRotation(Quadrant),
 				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case InnerCorner:
-			InnerCornerISM->AddInstance(FTransform(
+			InnerCornerISM->AddInstanceWorldSpace(FTransform(
 				FWallStruct::GetQuadrantRotation(Quadrant),
 				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case Side:
-			MiddleISM->AddInstance(FTransform(
+			MiddleISM->AddInstanceWorldSpace(FTransform(
 				FWallStruct::GetQuadrantRotation(Quadrant) - FRotator(0,90,0),
 				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case SideFlipped:
-			MiddleISM->AddInstance(FTransform(
+			MiddleISM->AddInstanceWorldSpace(FTransform(
 				FWallStruct::GetQuadrantRotation(Quadrant),
 				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case OuterCorner:
-			OuterCornerISM->AddInstance(FTransform(
+			OuterCornerISM->AddInstanceWorldSpace(FTransform(
 				FWallStruct::GetQuadrantRotation(Quadrant),
 				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
@@ -150,7 +150,7 @@ TArray<int> UWallTypeComponent::GetIndex(const UTile* TileData, const uint8 OldT
 	for (int i = 0; i < WallSubComponents[OldTypeIndex]->GetInstanceCount(); ++i)
 	{
 		FTransform Transform;
-		WallSubComponents[OldTypeIndex]->GetInstanceTransform(i, Transform);
+		WallSubComponents[OldTypeIndex]->GetInstanceTransform(i, Transform, true);
 		for (const EWallQuadrant Quadrant : TEnumRange<EWallQuadrant>())
 		{
 			if (Transform.GetLocation().Equals(TileData->GetWorldPos() + FWallStruct::GetQuadrantOffset(Quadrant), 10))

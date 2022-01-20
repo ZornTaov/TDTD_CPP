@@ -74,7 +74,7 @@ void UTileManagerComponent::GetIndex(const UTile* TileData, const uint8 OldTypeI
 		for (int i = 0; i < FloorComponents[OldTypeIndex]->GetInstanceCount(); ++i)
 		{
 			FTransform Transform;
-			FloorComponents[OldTypeIndex]->GetInstanceTransform(i, Transform);
+			FloorComponents[OldTypeIndex]->GetInstanceTransform(i, Transform, true);
 			if (Transform.GetLocation().Equals(TileData->GetWorldPos()))
 			{
 				Index = i;
@@ -111,5 +111,5 @@ void UTileManagerComponent::OnTileChanged(UTile* InTile)
 		FloorComponents[OldTypeIndex]->RemoveInstance(Index);
 	}
 	//Add to new Type
-	FloorComponents[NewTypeIndex]->AddInstance(FTransform(InTile->GetRot().Quaternion(), InTile->GetWorldPos()));
+	FloorComponents[NewTypeIndex]->AddInstanceWorldSpace(FTransform(InTile->GetRot().Quaternion(), InTile->GetWorldPos()));
 }

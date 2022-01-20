@@ -80,7 +80,7 @@ void ABaseUnitCharacter::Tick(float DeltaTime)
 			TargetTile = MyJob->GetTile();
 			MyJob->OnJobComplete.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
 			MyJob->OnJobCancel.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
-			AIBlackboard->SetValueAsVector(FName("TargetDestination"), MyJob->GetTile()->GetWorldPos() + GridWorldController->GetActorLocation());
+			AIBlackboard->SetValueAsVector(FName("TargetDestination"), MyJob->GetTile()->GetWorldPos());
 		}
 	}
 }
