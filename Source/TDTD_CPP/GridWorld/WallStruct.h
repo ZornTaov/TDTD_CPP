@@ -53,6 +53,8 @@ struct FWallStruct : public FTableRowBase
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UStaticMesh* MiddleMesh = nullptr;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UStaticMesh* Middle2Mesh = nullptr;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UStaticMesh* OuterCornerMesh = nullptr;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UTexture* Icon = nullptr;

@@ -100,14 +100,33 @@ void UWallManagerComponent::InitWallComponents(const USceneComponent* ParentComp
 		for (int i = 0; i < ParentComp->GetNumChildrenComponents(); ++i)
 		{
 			UWallTypeComponent* Child = Cast<UWallTypeComponent>(ParentComp->GetChildComponent(i));
-			if(IsValid(Child))
+			if(IsValid(Child) && OutWallRowArray.IsValidIndex(i))
 			{
-				Child->FillISM->SetStaticMesh(OutWallRowArray[i]->FillMesh);
-				Child->InnerCornerISM->SetStaticMesh(OutWallRowArray[i]->InnerCornerMesh);
-				Child->MiddleISM->SetStaticMesh(OutWallRowArray[i]->MiddleMesh);
-				Child->OuterCornerISM->SetStaticMesh(OutWallRowArray[i]->OuterCornerMesh);
+				if(IsValid(Child->FillISM))
+				{
+					Child->FillISM->SetStaticMesh(OutWallRowArray[i]->FillMesh);
+				}
+				if(IsValid(Child->InnerCornerISM))
+				{
+					Child->InnerCornerISM->SetStaticMesh(OutWallRowArray[i]->InnerCornerMesh);
+				}
+				if(IsValid(Child->MiddleISM))
+				{
+					Child->MiddleISM->SetStaticMesh(OutWallRowArray[i]->MiddleMesh);
+				}
+				if(IsValid(Child->Middle2ISM))
+				{
+					Child->Middle2ISM->SetStaticMesh(OutWallRowArray[i]->Middle2Mesh);
+				}
+				if(IsValid(Child->OuterCornerISM))
+				{
+					Child->OuterCornerISM->SetStaticMesh(OutWallRowArray[i]->OuterCornerMesh);
+				}
+				if(IsValid(Child->GhostPrototypeISM))
+				{
+					Child->GhostPrototypeISM->SetStaticMesh(OutWallRowArray[i]->GhostPrototype);
+				}
 				Child->WallTypeName = WallTileDataTable->GetRowNames()[i];
-				Child->GhostPrototypeISM->SetStaticMesh(OutWallRowArray[i]->GhostPrototype);
 				WallComponents[i] = Child;
 			}
 		}

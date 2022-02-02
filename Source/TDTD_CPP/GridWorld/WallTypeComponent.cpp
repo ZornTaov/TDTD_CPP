@@ -15,17 +15,20 @@ UWallTypeComponent::UWallTypeComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	FillISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("FillISM"));
 	MiddleISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MiddleISM"));
+	Middle2ISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Middle2ISM"));
 	InnerCornerISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("InnerCornerISM"));
 	OuterCornerISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("OuterCornerISM"));
 	GhostPrototypeISM = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("GhostPrototypeISM"));
 	FillISM->SetupAttachment(this);
 	MiddleISM->SetupAttachment(this);
+	Middle2ISM->SetupAttachment(this);
 	InnerCornerISM->SetupAttachment(this);
 	OuterCornerISM->SetupAttachment(this);
 	GhostPrototypeISM->SetupAttachment(this);
 
 	WallSubComponents.Add(FillISM);
 	WallSubComponents.Add(MiddleISM);
+	WallSubComponents.Add(Middle2ISM);
 	WallSubComponents.Add(InnerCornerISM);
 	WallSubComponents.Add(OuterCornerISM);
 	
@@ -83,8 +86,8 @@ void UWallTypeComponent::AddWall(const UTile* InTile, const bool Propagate) cons
 				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case Side:
-			MiddleISM->AddInstanceWorldSpace(FTransform(
-				FWallStruct::GetQuadrantRotation(Quadrant) - FRotator(0,90,0),
+			Middle2ISM->AddInstanceWorldSpace(FTransform(
+				FWallStruct::GetQuadrantRotation(Quadrant),
 				FWallStruct::GetQuadrantOffset(Quadrant) + CenterLocation));
 			break;
 		case SideFlipped:
@@ -166,19 +169,34 @@ TArray<int> UWallTypeComponent::GetIndex(const UTile* TileData, const uint8 OldT
 }
 void UWallTypeComponent::ClearInstances()
 {
-	FillISM->ClearInstances();
-	InnerCornerISM->ClearInstances();
-	MiddleISM->ClearInstances();
-	OuterCornerISM->ClearInstances();
-	GhostPrototypeISM->ClearInstances();
+	if(IsValid(FillISM))
+		FillISM->ClearInstances();
+	if(IsValid(InnerCornerISM))
+		InnerCornerISM->ClearInstances();
+	if(IsValid(MiddleISM))
+		MiddleISM->ClearInstances();
+	if(IsValid(Middle2ISM))
+		Middle2ISM->ClearInstances();
+	if(IsValid(OuterCornerISM))
+		OuterCornerISM->ClearInstances();
+	if(IsValid(GhostPrototypeISM))
+		GhostPrototypeISM->ClearInstances();
 }
 
 int32 UWallTypeComponent::GetInstanceCount() const
 {
-	return  FillISM->GetInstanceCount() + 
-			InnerCornerISM->GetInstanceCount() + 
-			MiddleISM->GetInstanceCount() + 
-			OuterCornerISM->GetInstanceCount(); 
+	if(IsValid(FillISM) &&
+		IsValid(InnerCornerISM) &&
+		IsValid(MiddleISM) &&
+		IsValid(Middle2ISM) &&
+		IsValid(OuterCornerISM) &&
+		IsValid(GhostPrototypeISM))
+			return  FillISM->GetInstanceCount() + 
+					InnerCornerISM->GetInstanceCount() + 
+					MiddleISM->GetInstanceCount() + 
+					Middle2ISM->GetInstanceCount() + 
+					OuterCornerISM->GetInstanceCount();
+	return 0;
 }
 
 void UWallTypeComponent::AddGhostWall(const UTile* InTile) const

@@ -20,6 +20,8 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UInstancedStaticMeshComponent* MiddleISM;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UInstancedStaticMeshComponent* Middle2ISM;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UInstancedStaticMeshComponent* OuterCornerISM;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UInstancedStaticMeshComponent* GhostPrototypeISM;
