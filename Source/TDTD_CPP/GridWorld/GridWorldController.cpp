@@ -6,6 +6,7 @@
 #include "GridWorld.h"
 #include "Installables/InstalledObject.h"
 #include "TDTDExtensionHelpers.h"
+#include "TDTDDebugHelpers.h"
 #include "TileManagerComponent.h"
 #include "VarDump.h"
 #include "TopDownController.h"
@@ -201,33 +202,5 @@ UTile* AGridWorldController::UpdateTile(const ETileType NewType, UTile* Tile) co
 void AGridWorldController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//DrawTileDebug();
-}
-
-void AGridWorldController::DrawDebug(const FVector Pos, const FString Str) const
-{
-	const FColor DrawColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f).ToFColor(true);
-	DrawDebugString(GetWorld(), Pos, *Str, nullptr, DrawColor, 0.0f, true);
-}
-
-void AGridWorldController::DrawTileDebug() const
-{
-	FHitResult Hit;
-	GetGameInstance()->GetPrimaryPlayerController()->GetHitResultUnderCursor(ECC_Camera, false, Hit);
-	FVector CursorL = Hit.ImpactPoint.GridSnap(World->TileWidth);
-	CursorL.Z = Hit.ImpactPoint.Z;
-	TArray<UTile*> Tiles = GetGridWorld()->GetNeighborTiles(
-		(CursorL - GetActorLocation())/GetGridWorld()->TileSize(),
-		2
-		);
-	for (const UTile* Tile : Tiles)
-	{
-		if (Tile)
-			DrawDebug(Tile->GetWorldPos() + FVector(0, 0, 100), FString::Printf(
-					  TEXT("Index:%s\nTileType:%s\nInstalledType:%s\nJob:%s"), *Tile->GetIndexPos().ToCompactString(),
-					  *GetEnumName(Tile->GetType()),
-					  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT("Empty")),
-					  *(Tile->PendingJobs.IsValidIndex(0) ? Tile->PendingJobs[0]->JobName.ToString() : TEXT("None")))
-					  );
-	}
+	//DrawTileDebug(GetWorld(), GetGridWorld(), GetActorLocation());
 }

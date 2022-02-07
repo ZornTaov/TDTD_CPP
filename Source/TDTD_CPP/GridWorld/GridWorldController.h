@@ -58,9 +58,6 @@ public:
 protected:	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-	void DrawDebug(FVector Pos, FString Str) const;
-	void DrawTileDebug() const;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
