@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "TileType.h"
+#include "Installables/InstalledObject.h"
 #include "JobSystem/JobSystem.h"
 #include "GridWorldController.generated.h"
 
@@ -25,6 +26,8 @@ protected:
 	UGridWorld* World = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UJobSystem* JobSystem;
+	UPROPERTY()
+	TMap<FName, UInstalledObject*> Installables;
 public:
 	UJobSystem* GetJobSystem() const;
 	UGridWorld* GetGridWorld() const;
@@ -58,6 +61,9 @@ public:
 protected:	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	void OnInstalledObjectLoaded();
+
+	virtual void PreInitializeComponents() override;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

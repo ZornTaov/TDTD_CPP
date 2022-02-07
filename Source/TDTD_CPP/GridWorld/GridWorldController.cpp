@@ -7,10 +7,12 @@
 #include "Installables/InstalledObject.h"
 #include "TDTDExtensionHelpers.h"
 #include "TDTDDebugHelpers.h"
+#include "TDTD_CPP.h"
 #include "TileManagerComponent.h"
 #include "VarDump.h"
 #include "TopDownController.h"
 #include "WallManagerComponent.h"
+#include "Engine/AssetManager.h"
 #include "JobSystem/JobSystem.h"
 
 // Sets default values
@@ -67,7 +69,43 @@ void AGridWorldController::BeginPlay()
 	{
 		Controller->SetWorldController(this);
 	}
-	JobSystem = NewObject<UJobSystem>();
+	JobSystem = NewObject<UJobSystem>();	
+}
+
+void AGridWorldController::OnInstalledObjectLoaded()
+{
+	//LogOnScreen(this, "Finished loading.", FColor::Green);
+
+	UAssetManager* Manager = UAssetManager::GetIfValid();
+	if (Manager)
+	{
+		TArray<UObject*> InstalledObjectsList;
+		Manager->GetPrimaryAssetObjectList(FPrimaryAssetType("Installed Object"), InstalledObjectsList);
+		for (auto Object : InstalledObjectsList)
+		{
+			UInstalledObject* InstalledObject = nullptr;
+			if (IsValid(InstalledObject = Cast<UInstalledObject>(Object)))
+			{
+				Installables.Add(InstalledObject->ObjectType, InstalledObject);
+				UE_LOG(LogTDTD_CPP, Display, TEXT("Added Installable: %s"), *InstalledObject->ObjectType.ToString());
+			}
+		}
+	}
+}
+
+void AGridWorldController::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+	if(HasAuthority())
+	{
+		TArray<FPrimaryAssetId> InstalledObjectsIdList;
+		UAssetManager* Manager = UAssetManager::GetIfValid();
+		Manager->GetPrimaryAssetIdList(FPrimaryAssetType("Installed Object"), InstalledObjectsIdList);
+		FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &AGridWorldController::OnInstalledObjectLoaded);
+		TArray<FName> Bundles;
+
+		Manager->LoadPrimaryAssets(InstalledObjectsIdList, Bundles, Delegate);
+	}
 }
 
 void AGridWorldController::OnConstruction(const FTransform& Transform)
@@ -140,8 +178,10 @@ void AGridWorldController::InstallWallToTile(UTile* TileAt, const FName Installe
 	else
 	{
 		// incorrect usage of UInstalledObject
-		UInstalledObject* Proto = UInstalledObject::CreatePrototype(NameToCheck);
-		UInstalledObject::PlaceInstance(Proto,TileAt);
+		if (const UInstalledObject* Obj = *Installables.Find(NameToCheck))
+		{
+			UInstalledObject::PlaceInstance(Obj,TileAt);
+		}
 	}
 	WallManager->PlaceWall(TileAt, NameToCheck, Remove);
 }
