@@ -58,6 +58,7 @@ ABaseUnitCharacter::ABaseUnitCharacter()
 void ABaseUnitCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	//CurrTile = DestTile = GridWorldController->GetGridWorld()->GetTileAtWorldPos(this->GetActorLocation());
 	if (BTree)
 	{
 		AAIController* AiController = GetController<AAIController>();
@@ -77,10 +78,10 @@ void ABaseUnitCharacter::Tick(float DeltaTime)
 		MyJob = GridWorldController->GetJobSystem()->GetJob();
 		if (MyJob)
 		{
-			TargetTile = MyJob->GetTile();
+			CurrTile = MyJob->GetTile();
 			MyJob->OnJobComplete.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
 			MyJob->OnJobCancel.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
-			AIBlackboard->SetValueAsVector(FName("TargetDestination"), MyJob->GetTile()->GetWorldPos());
+			AIBlackboard->SetValueAsVector(FName("TargetDestination"), CurrTile->GetWorldPos());
 		}
 	}
 }

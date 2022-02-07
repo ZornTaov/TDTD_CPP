@@ -43,22 +43,24 @@ protected:
 public:
 	ETileType GetOldType() const;
 protected:
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	//EWallType WallType = EWallType::Empty;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	FTransform Pos = FTransform::Identity;
 	FOnTileChangedDispatcher OnTileChangedCB;
 
+	float MovementCost;
+	
 public:
 	void Init(UGridWorld* Gw, int X, int Y, int Z, ETileType InitType = ETileType::Empty);
+	float GetMovementCost() const;
 	UPROPERTY(BlueprintReadOnly)
 	UGridWorld* World = nullptr;
 	UPROPERTY()
 	UInstalledObject* InstalledObject = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TArray<UJob*> PendingJobs;
 	
+	UFUNCTION(BlueprintCallable)
 	FTransform& GetPos();
 	UFUNCTION(BlueprintCallable)
 	ETileType GetType() const;
@@ -68,6 +70,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector GetIndexPos() const;
 	void SetPos(const FVector& InPos);
+	UFUNCTION(BlueprintCallable)
 	FRotator GetRot() const;
 	void SetRot(const FRotator& InRot);
 	bool PlaceObject(UInstalledObject* Obj);

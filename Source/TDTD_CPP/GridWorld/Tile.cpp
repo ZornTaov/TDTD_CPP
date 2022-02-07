@@ -13,6 +13,19 @@ void UTile::Init(UGridWorld* Gw, const int X, const int Y, const int Z, const ET
 	this->SetType(InitType);
 }
 
+float UTile::GetMovementCost() const
+{
+	if (GetType() == ETileType::Empty)
+	{
+		return 0;
+	}
+	if (!IsValid(InstalledObject))
+	{
+		return 1;
+	}
+	return 1 * InstalledObject->MovementCost;
+}
+
 ETileType UTile::GetType() const
 {
 	return Type;

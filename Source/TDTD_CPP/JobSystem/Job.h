@@ -26,6 +26,7 @@ public:
 	float JobTime;
 	UPROPERTY()
 	FName JobName;
+	UFUNCTION(BlueprintPure)
 	UTile* GetTile() const { return this->Tile; }
 	
 	FOnJobEventDispatcher OnJobComplete;
@@ -35,7 +36,7 @@ public:
 	template<typename UserClass>
 	void RegisterDone(UserClass* InUserObject, typename TMemFunPtrType<false, UserClass, void(UJob*)>::Type InFunc);
 	UFUNCTION(BlueprintCallable)
-	void DoWork(float WorkTime);
+	bool DoWork(float WorkTime);
 	void CancelJob();
 	
 	template<typename UserClass>

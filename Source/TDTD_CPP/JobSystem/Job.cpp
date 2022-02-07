@@ -17,14 +17,16 @@ void UJob::RegisterDone(UserClass* InUserObject, typename TMemFunPtrType<false, 
 	OnJobCancel.AddUObject(InUserObject, InFunc);
 }
 
-void UJob::DoWork(float WorkTime)
+bool UJob::DoWork(float WorkTime)
 {
 	JobTime -= WorkTime;
 	if (JobTime <= 0)
 	{
 		UE_LOG(LogActor, Display, TEXT("Job's Done! Tile: %s"), *Tile->GetIndexPos().ToCompactString())
 		OnJobComplete.Broadcast(this);
+		return false;
 	}
+	return true;
 }
 
 void UJob::CancelJob()
