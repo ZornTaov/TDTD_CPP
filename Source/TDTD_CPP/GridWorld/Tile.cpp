@@ -46,6 +46,11 @@ ETileType UTile::GetOldType() const
 	return OldType;
 }
 
+FString UTile::ToString()
+{
+	return FString::Printf(TEXT("%s"), *GetIndexPos().ToString());
+}
+
 FTransform& UTile::GetPos()
 {
 	return Pos;

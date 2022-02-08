@@ -38,6 +38,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<UTile*> GetNeighborTiles(const FVector IndexPos, int Range = 1) const;
 	void PlaceGhost(UTile* InTile, const FName& InstalledObjectName);
+	FVector GetWorldPosForTileCenter(const FIntPoint& InPoint) const;
+	UTile* GetTileAtWorldPos(FVector InPos, FIntPoint& OutPoint);
 protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WorldRootComponent;

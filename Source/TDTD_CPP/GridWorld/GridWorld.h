@@ -31,6 +31,8 @@ public:
 	void RegisterFurnitureCreated(const FOnFurnitureCreated& Del);
 	void RegisterTileChanged(const FOnTileChanged& Del);
 	UTile* GetTileAtWorldPos(FVector InPos);
+	bool IsTileWalkable(const UTile* InTile);
+	bool IsLocationWalkable(const FIntPoint& InPos);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Width = 10;

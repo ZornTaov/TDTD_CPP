@@ -42,6 +42,7 @@ protected:
 	ETileType OldType = ETileType::Empty;
 public:
 	ETileType GetOldType() const;
+	FString ToString();
 protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	FTransform Pos = FTransform::Identity;
@@ -69,6 +70,10 @@ public:
 	FVector GetWorldPos() const;
 	UFUNCTION(BlueprintCallable)
 	FVector GetIndexPos() const;
+	UFUNCTION(BlueprintCallable)
+	float X() const { return GetIndexPos().X; }
+	UFUNCTION(BlueprintCallable)
+	float Y() const { return GetIndexPos().Y; }
 	void SetPos(const FVector& InPos);
 	UFUNCTION(BlueprintCallable)
 	FRotator GetRot() const;

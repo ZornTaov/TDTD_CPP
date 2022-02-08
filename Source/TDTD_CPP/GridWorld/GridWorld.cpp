@@ -3,6 +3,7 @@
 
 #include "GridWorld.h"
 #include "GridWorldLayer.h"
+#include "Tile.h"
 #include "VarDump.h"
 
 void UGridWorld::RegisterFurnitureCreated(const FOnFurnitureCreated& Del)
@@ -18,6 +19,16 @@ void UGridWorld::RegisterTileChanged(const FOnTileChanged& Del)
 UTile* UGridWorld::GetTileAtWorldPos(const FVector InPos)
 {
 	return GetTileAt(InPos/TileSize());
+}
+
+bool UGridWorld::IsTileWalkable(const UTile* InTile)
+{
+	return InTile->GetMovementCost() > 0;
+}
+
+bool UGridWorld::IsLocationWalkable(const FIntPoint& InPos)
+{
+	return IsTileWalkable(GetTileAt(FVector(InPos, 0)));
 }
 
 void UGridWorld::Init(const ETileType InitType)
@@ -50,7 +61,7 @@ UTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
 	FGridWorldLayer* Layer = GetLayer(Z);
 	if (!Layer)
 	{
-		UE_LOG(LogActor, Error, TEXT("No layers?!"));
+		UE_LOG(LogActor, Error, TEXT("No layers?! Tried: %d"), Z);
 		return nullptr;
 	}
 	return Layer->GetTileAt(X, Y);

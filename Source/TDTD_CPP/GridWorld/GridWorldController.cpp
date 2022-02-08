@@ -204,6 +204,20 @@ void AGridWorldController::PlaceGhost(UTile* InTile, const FName& InstalledObjec
 	}
 }
 
+FVector AGridWorldController::GetWorldPosForTileCenter(const FIntPoint& InPoint) const
+{
+	FVector Vector = FVector(InPoint);
+	return Vector*GetGridWorld()->TileSize() + GetActorLocation();
+}
+
+UTile* AGridWorldController::GetTileAtWorldPos(const FVector InPos, FIntPoint& OutPoint)
+{
+	UTile* TileAt = GetTileAtWorldPos(InPos);
+	OutPoint.X = TileAt->X();
+	OutPoint.Y = TileAt->Y();
+	return TileAt;
+}
+
 void AGridWorldController::TileClicked(UTile* Tile, ETileType NewType) const
 {
 	if (!Tile)
