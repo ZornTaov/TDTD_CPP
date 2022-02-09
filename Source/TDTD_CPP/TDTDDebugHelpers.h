@@ -20,7 +20,7 @@ static void DrawTileDebug(const UWorld* InWorld, UGridWorld* GridWorld, const FV
 	{
 		if (Tile)
 			DrawDebug(InWorld, Tile->GetWorldPos() + FVector(0, 0, 100), FString::Printf(
-					  TEXT("Index:%s\nTileType:%s\nInstalledType:%s\nJob:%s"), *Tile->GetIndexPos().ToCompactString(),
+					  TEXT("Index:%d,%d\nTile:%s\nInstalled:%s\nJob:%s"), static_cast<int>(Tile->GetIndexPos().X),static_cast<int>(Tile->GetIndexPos().Y),
 					  *GetEnumName(Tile->GetType()),
 					  *(Tile->InstalledObject ? Tile->InstalledObject->ObjectType.ToString() : TEXT("Empty")),
 					  *(Tile->PendingJobs.IsValidIndex(0) ? Tile->PendingJobs[0]->JobName.ToString() : TEXT("None")))

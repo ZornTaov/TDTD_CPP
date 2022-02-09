@@ -23,7 +23,7 @@ UTile* UGridWorld::GetTileAtWorldPos(const FVector InPos)
 
 bool UGridWorld::IsTileWalkable(const UTile* InTile)
 {
-	return InTile->GetMovementCost() > 0;
+	return InTile->GetMovementCost() > 0 && InTile->PendingJobs.Num() == 0 && InTile->InstalledObject == nullptr;
 }
 
 bool UGridWorld::IsLocationWalkable(const FIntPoint& InPos)

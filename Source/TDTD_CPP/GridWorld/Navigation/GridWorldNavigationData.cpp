@@ -63,7 +63,7 @@ FPathFindingResult AGridWorldNavigationData::FindPath(const FNavAgentProperties&
 		else if (Query.QueryFilter.IsValid())
 		{
 			FIntPoint myGridPos, targetGridPos;
-			AStar->WorldGridActor->GetTileAtWorldPos(Query.StartLocation, myGridPos);
+			AStar->WorldGridActor->GetTileAtWorldPos(Query.StartLocation.GridSnap(AStar->WorldGridActor->GetGridWorld()->TileWidth), myGridPos);
 			AStar->WorldGridActor->GetTileAtWorldPos(Query.EndLocation, targetGridPos);
 
 			WorldGridGraphQueryFilter queryFilter;

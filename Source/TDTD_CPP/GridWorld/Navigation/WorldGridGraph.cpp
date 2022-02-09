@@ -14,6 +14,11 @@ bool WorldGridGraph::IsValidRef(FNodeRef NodeRef) const
 
 WorldGridGraph::FNodeRef WorldGridGraph::GetNeighbour(const FNodeRef NodeRef, const int32 NeighbourIndex) const
 {
-	const FVector IndexPos = WorldGrid->GetNeighborTiles(FVector(NodeRef, 0))[NeighbourIndex]->GetIndexPos();
+	UTile* NeighborTile = WorldGrid->GetNeighborTiles(FVector(NodeRef, 0))[NeighbourIndex];
+	FVector IndexPos;
+	if (IsValid(NeighborTile))
+		IndexPos = NeighborTile->GetIndexPos();
+	else
+		return FNodeRef::NoneValue;
 	return FNodeRef(IndexPos.X, IndexPos.Y);
 }
