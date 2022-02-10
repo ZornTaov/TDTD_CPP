@@ -24,7 +24,9 @@ class TDTD_CPP_API UGridWorld final : public UActorComponent
 protected:
 	UPROPERTY(BlueprintReadWrite, NoClear, EditFixedSize)
 	TArray<FGridWorldLayer> Layers;
+	int CurrentLayer = 0;
 public:
+	int GetCurrentLayer() const;
 
 	FOnFurnitureCreatedDispatcher OnFurnitureCreatedCB;
 	FOnTileChangedDispatcher OnTileChangedCB;
@@ -52,6 +54,6 @@ public:
 	UTile* GetTileAt(FVector Pos);
 	UTile* GetTileAt(int X, int Y, int Z);
 	
-	TArray<UTile*> GetNeighborTiles(const FVector IndexPos, int Range = 1);
+	TArray<UTile*> GetNeighborTiles(FVector IndexPos, int Range = 1);
 	void OnTileChanged(UTile* Tile) const;
 };

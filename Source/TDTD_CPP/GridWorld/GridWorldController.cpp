@@ -206,7 +206,7 @@ void AGridWorldController::PlaceGhost(UTile* InTile, const FName& InstalledObjec
 
 FVector AGridWorldController::GetWorldPosForTileCenter(const FIntPoint& InPoint) const
 {
-	FVector Vector = FVector(InPoint);
+	FVector Vector = FVector(InPoint, GetGridWorld()->GetCurrentLayer());
 	return Vector*GetGridWorld()->TileSize() + GetActorLocation();
 }
 

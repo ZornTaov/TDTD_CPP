@@ -6,6 +6,11 @@
 #include "Tile.h"
 #include "VarDump.h"
 
+int UGridWorld::GetCurrentLayer() const
+{
+	return CurrentLayer;
+}
+
 void UGridWorld::RegisterFurnitureCreated(const FOnFurnitureCreated& Del)
 {
 	OnFurnitureCreatedCB.Add(Del);
@@ -23,12 +28,13 @@ UTile* UGridWorld::GetTileAtWorldPos(const FVector InPos)
 
 bool UGridWorld::IsTileWalkable(const UTile* InTile)
 {
+	// TODO: Decide how tile walk-ability is calculated.
 	return InTile->GetMovementCost() > 0 && InTile->PendingJobs.Num() == 0 && InTile->InstalledObject == nullptr;
 }
 
 bool UGridWorld::IsLocationWalkable(const FIntPoint& InPos)
 {
-	return IsTileWalkable(GetTileAt(FVector(InPos, 0)));
+	return IsTileWalkable(GetTileAt(FVector(InPos, CurrentLayer)));
 }
 
 void UGridWorld::Init(const ETileType InitType)
@@ -58,18 +64,21 @@ UTile* UGridWorld::GetTileAt(const FVector Pos)
 
 UTile* UGridWorld::GetTileAt(const int X, const int Y, const int Z)
 {
-	FGridWorldLayer* Layer = GetLayer(Z);
+	// ToDo: Decide on how layers should really work, if at all. For now use single layer only.
+	FGridWorldLayer* Layer = GetLayer(CurrentLayer);
 	if (!Layer)
 	{
-		UE_LOG(LogActor, Error, TEXT("No layers?! Tried: %d"), Z);
+		//UE_LOG(LogActor, Error, TEXT("No layers?! Tried: %d"), Z);
 		return nullptr;
 	}
 	return Layer->GetTileAt(X, Y);
 }
 
-TArray<UTile*> UGridWorld::GetNeighborTiles(const FVector IndexPos, int Range)
+TArray<UTile*> UGridWorld::GetNeighborTiles(FVector IndexPos, int Range)
 {
 	TArray<UTile*> NeighborTiles;
+	// ToDo: Decide on how layers should really work, if at all. For now use single layer only.
+	IndexPos.Z = CurrentLayer;
 	for (int y = -Range; y <= Range; ++y)
 	{
 		for (int x = -Range; x <= Range; ++x)
