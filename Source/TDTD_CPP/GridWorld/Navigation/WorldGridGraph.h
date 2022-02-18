@@ -100,5 +100,5 @@ public:
     FNodeRef GetNeighbour(const FNodeRef NodeRef, const int32 NeighbourIndex) const;
 
 private:
-    UGridWorld* WorldGrid;
+    UGridWorld* WorldGrid = nullptr;
 };

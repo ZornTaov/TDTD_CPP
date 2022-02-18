@@ -40,6 +40,8 @@ public:
 	void PlaceGhost(UTile* InTile, const FName& InstalledObjectName);
 	FVector GetWorldPosForTileCenter(const FIntPoint& InPoint) const;
 	UTile* GetTileAtWorldPos(FVector InPos, FIntPoint& OutPoint);
+	float GetTileSize() const;
+	float GetTileThickness() const;
 protected:
 	UPROPERTY(Instanced, NoClear)
 	USceneComponent* WorldRootComponent;

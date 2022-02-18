@@ -11,7 +11,7 @@ UJob* UJobSystem::MakeJob(UTile* InTile)
 	return Job;
 }
 
-UJob* UJobSystem::GetJob()
+UJob* UJobSystem::Dequeue()
 {
 	UJob* Job = nullptr;
 	if (!JobQueue.Dequeue(Job))
@@ -19,4 +19,16 @@ UJob* UJobSystem::GetJob()
 		return nullptr;
 	}
 	return Job;
+}
+
+void UJobSystem::Enqueue(UJob* Job)
+{
+	if (Job->JobTime < 0)
+	{
+		Job->DoWork(0);
+		return;
+	}
+	JobQueue.Enqueue(Job);
+
+	OnJobCreated.Broadcast(Job);
 }

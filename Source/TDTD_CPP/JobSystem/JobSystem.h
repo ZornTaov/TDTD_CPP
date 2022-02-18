@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "Job.h"
 #include "Containers/Queue.h"
+#include "Units/BaseUnitCharacter.h"
 #include "JobSystem.generated.h"
 
 /**
@@ -21,5 +22,6 @@ public:
 	
 	GENERATED_BODY()
 	UJob* MakeJob(UTile* InTile);
-	UJob* GetJob();
+	UJob* Dequeue();
+	void Enqueue(UJob* Job);
 };

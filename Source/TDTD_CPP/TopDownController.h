@@ -26,8 +26,6 @@ protected:
 	bool BInteractUnderMouseCursor : 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Units, meta = (AllowPrivateAccess = "true"))
 	TArray<ABaseUnitCharacter*> SelectedUnits;
-	UPROPERTY()
-	AGridWorldController* WorldController = nullptr;
 	FVector DragStartPosition;
 	FVector DragEndPosition;
 	TArray<FVector> SelectedTilesLocations;
@@ -39,6 +37,8 @@ protected:
 	UPROPERTY()
 	UGameplayWidget* GameplayWidget;
 	TSubclassOf<UGameplayWidget> GameplayWidgetClass;
+	UPROPERTY()
+	AGridWorldController* GridWorldController;
 public:
 	UPROPERTY()
 	TSoftObjectPtr<UMaterialParameterCollection> MaterialParameterCollectionAsset;
@@ -48,12 +48,11 @@ public:
 	ETileType CurrentTileType = ETileType::Ground;
 	UPROPERTY(BlueprintReadWrite)
 	EGwSelectionMode CurrentMode = EGwSelectionMode::Building;
-	AGridWorldController* GetWorldController() const;
+	AGridWorldController* GetWorldController();
 	UPROPERTY()
 	UTDCameraControllerComponent* CameraController;
-	void SetWorldController(AGridWorldController* const InWorldController);
-	float GetTileSize() const;
-	float GetTileThickness() const;
+	//float GetTileSize() const;
+	//float GetTileThickness() const;
 protected:
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;

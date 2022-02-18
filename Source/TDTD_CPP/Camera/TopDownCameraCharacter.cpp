@@ -14,6 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TopDownController.h"
 #include "GridWorld/GridWorld.h"
+#include "GridWorld/GridWorldSubsystem.h"
 
 ATopDownCameraCharacter::ATopDownCameraCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.DoNotCreateDefaultSubobject(ACharacter::MeshComponentName))
@@ -97,9 +98,9 @@ void ATopDownCameraCharacter::UpdateCursorPosition(ACharacter* Parent, USceneCom
 	else if (APlayerController* PC = Cast<APlayerController>(Parent->GetController()))
 	{
 		PC->GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
-		ATopDownController* Controller = Cast<ATopDownController>(PC);
-		float GridSnap = Controller ?
-			Controller->GetTileSize() : 200.0f;
+		UGridWorldSubsystem* GridWorldSubsystem = PC->GetWorld()->GetSubsystem<UGridWorldSubsystem>();
+		float GridSnap = GridWorldSubsystem ?
+			                 GridWorldSubsystem->GetGridWorldController()->GetTileSize() : 200.0f;
 		FVector CursorL = HitResult.Location.GridSnap(GridSnap);
 		CursorL.Z = HitResult.Location.Z;
 		Cursor->SetWorldLocation(CursorL);

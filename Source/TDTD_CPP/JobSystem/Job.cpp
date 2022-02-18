@@ -2,6 +2,7 @@
 
 #include "Job.h"
 
+#include "TDTD_CPP.h"
 #include "GridWorld/Tile.h"
 
 void UJob::Init(UTile* InTile, float InJobTime)
@@ -20,9 +21,12 @@ void UJob::RegisterDone(UserClass* InUserObject, typename TMemFunPtrType<false, 
 bool UJob::DoWork(float WorkTime)
 {
 	JobTime -= WorkTime;
+	if(GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Yellow,
+			FString::Printf(TEXT("Job: %s:%s worktime: %f"), *JobName.ToString(), *GetTile()->GetIndexPos().ToString(), JobTime));
 	if (JobTime <= 0)
 	{
-		UE_LOG(LogActor, Display, TEXT("Job's Done! Tile: %s"), *Tile->GetIndexPos().ToCompactString())
+		UE_LOG(LogTDTD_CPP, Display, TEXT("Job's Done! Tile: %s"), *Tile->GetIndexPos().ToCompactString())
 		OnJobComplete.Broadcast(this);
 		return false;
 	}

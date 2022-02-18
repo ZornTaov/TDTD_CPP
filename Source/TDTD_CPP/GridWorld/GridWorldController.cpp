@@ -4,6 +4,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "GridWorld.h"
+#include "GridWorldSubsystem.h"
 #include "Installables/InstalledObject.h"
 #include "TDTDExtensionHelpers.h"
 #include "TDTDDebugHelpers.h"
@@ -64,10 +65,11 @@ UWallManagerComponent* AGridWorldController::GetWallManager() const
 void AGridWorldController::BeginPlay()
 {
 	Super::BeginPlay();
-	ATopDownController* Controller = Cast<ATopDownController>(GetWorld()->GetFirstPlayerController());
-	if (Controller)
+	UGridWorldSubsystem* GridWorldSubsystem = GetWorld()->GetSubsystem<UGridWorldSubsystem>();
+	if (GridWorldSubsystem)
 	{
-		Controller->SetWorldController(this);
+		GridWorldSubsystem->SetGridWorldController(this);
+		GridWorldSubsystem->SetGridWorld(this->GetGridWorld());
 	}
 	JobSystem = NewObject<UJobSystem>();	
 }
@@ -257,4 +259,16 @@ void AGridWorldController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//DrawTileDebug(GetWorld(), GetGridWorld(), GetActorLocation());
+}
+
+float AGridWorldController::GetTileSize() const
+{
+	return GetGridWorld() ?
+			GetGridWorld()->TileWidth : 200.0f;
+}
+
+float AGridWorldController::GetTileThickness() const
+{
+	return GetGridWorld() ?
+			GetGridWorld()->TileThickness : 200.0f;
 }

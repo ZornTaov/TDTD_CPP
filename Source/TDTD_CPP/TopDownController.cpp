@@ -14,6 +14,7 @@
 #include "Camera/TDCameraControllerComponent.h"
 #include "Engine/DecalActor.h"
 #include "GridWorld/GridWorld.h"
+#include "GridWorld/GridWorldSubsystem.h"
 #include "Installables/InstalledObject.h"
 #include "GridWorld/SelectionDecalActor.h"
 #include "GridWorld/SelectionModeEnum.h"
@@ -53,38 +54,14 @@ void ATopDownController::BeginPlay()
 	}
 	GameplayWidget = CreateWidget<UGameplayWidget>(this, this->GameplayWidgetClass);
 	GameplayWidget->AddToViewport();
-	TArray<ABaseUnitCharacter*> PreSpawnedUnits;
+	/*TArray<ABaseUnitCharacter*> PreSpawnedUnits;
 	FindAllActors(GetWorld(), PreSpawnedUnits);
 	for (ABaseUnitCharacter* PreSpawnedUnit : PreSpawnedUnits)
 	{
 		PreSpawnedUnit->GridWorldController = GetWorldController();
-	}
+	}*/
 	//FString MyActorName = GetActorLabel();
 	//VARDUMP(SelectedUnits.Num(), VARDUMP(FName("SelectedUnits")));
-}
-
-AGridWorldController* ATopDownController::GetWorldController() const
-{
-	return WorldController;
-}
-
-void ATopDownController::SetWorldController(AGridWorldController* const InWorldController)
-{
-	this->WorldController = InWorldController;
-}
-
-float ATopDownController::GetTileSize() const
-{
-	return GetWorldController() &&
-		GetWorldController()->GetGridWorld() ?
-			GetWorldController()->GetGridWorld()->TileWidth : 200.0f;
-}
-
-float ATopDownController::GetTileThickness() const
-{
-	return GetWorldController() &&
-		GetWorldController()->GetGridWorld() ?
-			GetWorldController()->GetGridWorld()->TileThickness : 200.0f;
 }
 
 TArray<ABaseUnitCharacter*>& ATopDownController::GetSelectedUnits()
@@ -102,6 +79,19 @@ void ATopDownController::DeselectUnits()
 		}
 	}
 	SelectedUnits.Empty();
+}
+
+AGridWorldController* ATopDownController::GetWorldController()
+{
+	if (!IsValid(GridWorldController))
+	{
+		const UGridWorldSubsystem* GridWorldSubsystem = GetWorld()->GetSubsystem<UGridWorldSubsystem>();
+		if (IsValid(GridWorldSubsystem))
+		{
+			GridWorldController = GridWorldSubsystem->GetGridWorldController();
+		}
+	}
+	return GridWorldController;
 }
 
 void ATopDownController::PlayerTick(const float DeltaTime)
@@ -164,7 +154,7 @@ void ATopDownController::OnResetVR()
 void ATopDownController::OnWallInstallDone(UJob* Job, FName InstalledObjectType)
 {
 	Job->GetTile()->PendingJobs.Remove(Job);
-	this->GetWorldController()->InstallWallToTile(Job->GetTile(), InstalledObjectType);
+	GetWorldController()->InstallWallToTile(Job->GetTile(), InstalledObjectType);
 }
 // TODO: Too monolithic, break up
 void ATopDownController::InteractUnderMouseCursor()
@@ -186,6 +176,7 @@ void ATopDownController::InteractUnderMouseCursor()
 		GetHitResultUnderCursor(ECC_Camera, false, Hit);
 		if (Hit.bBlockingHit)
 		{
+			AGridWorldController* GridWorldController = GetWorldController();
 			/*if(GEngine)
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,
 				FString::Printf(TEXT("Clicked %s"), *Hit.Actor->GetFName().ToString()));*/
@@ -196,8 +187,8 @@ void ATopDownController::InteractUnderMouseCursor()
 					//WorldController = Cast<AGridWorldController>(Hit.Actor);
 					for (FVector Loc : SelectedTilesLocations)
 					{
-						UTile* Tile = GetWorldController()->GetTileAtWorldPos(Loc);
-						GetWorldController()->TileClicked(Tile,this->CurrentTileType);
+						UTile* Tile = GridWorldController->GetTileAtWorldPos(Loc);
+						GridWorldController->TileClicked(Tile,this->CurrentTileType);
 					}
 					SelectedTilesLocations.Empty();
 				}
@@ -208,15 +199,15 @@ void ATopDownController::InteractUnderMouseCursor()
 					//WorldController = Cast<AGridWorldController>(Hit.Actor);
 					for (FVector Loc : SelectedTilesLocations)
 					{
-						UTile* TileAt = GetWorldController()->GetTileAtWorldPos(Loc);
+						UTile* TileAt = GridWorldController->GetTileAtWorldPos(Loc);
 						const FName InstalledObjectType = this->CurrentInstalledObjectType;
 
 						if (UInstalledObject::IsValidPosition(TileAt,InstalledObjectType.IsEqual(FName("Empty"))) && TileAt->PendingJobs.Num() == 0)
 						{
-							UJob* Job = GetWorldController()->GetJobSystem()->MakeJob(TileAt);
+							UJob* Job = GridWorldController->GetJobSystem()->MakeJob(TileAt);
 							Job->JobName = InstalledObjectType;
 							TileAt->PendingJobs.Add(Job);
-							GetWorldController()->PlaceGhost(TileAt, InstalledObjectType);
+							GridWorldController->PlaceGhost(TileAt, InstalledObjectType);
 							Job->OnJobComplete.AddLambda([this, InstalledObjectType](UJob* InJob){OnWallInstallDone(InJob, InstalledObjectType);});
 							Job->OnJobCancel.AddLambda([this](UJob* InJob){InJob->GetTile()->PendingJobs.Remove(InJob);});
 						}
@@ -242,7 +233,7 @@ void ATopDownController::InteractUnderMouseCursor()
 				}
 				else if (SelectedUnits.Num() > 0)
 				{
-					FVector CursorL = Hit.ImpactPoint.GridSnap(GetTileSize());
+					FVector CursorL = Hit.ImpactPoint.GridSnap(GridWorldController->GetTileSize());
 					CursorL.Z = Hit.ImpactPoint.Z;
 					// We hit something, move there
 					SetNewMoveDestination(CursorL);
@@ -285,9 +276,9 @@ void ATopDownController::SetNewMoveDestination(const FVector DestLocation)
 			AAIController* Controller = Unit->GetController<AAIController>();
 			if(!ensure(Controller != nullptr)) return;
 			// We need to issue move command only if far enough in order for walk animation to play correctly
-			if ((Distance > 120.0f))
+			//if ((Distance > 120.0f))
 			{
-				Controller->MoveToLocation(Pos, 5, true, true,
+				Controller->MoveToLocation(Pos, -1, false, true,
 					false, false, nullptr, true);
 				//UAIBlueprintHelperLibrary::SimpleMoveToLocation(Controller, pos);
 			}
@@ -307,9 +298,9 @@ void ATopDownController::RotateTileUnderMouseCursor() const
 		{
 			//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
-				//WorldController = Cast<AGridWorldController>(Hit.Actor);
-				UTile* Tile = WorldController->GetTileAtWorldPos(Hit.Location.GridSnap(GetTileSize()));
-				GetWorldController()->TileRotate(Tile);
+				const AGridWorldController* GridWorldController = GetWorldController();
+				UTile* Tile = GridWorldController->GetTileAtWorldPos(Hit.Location.GridSnap(GridWorldController->GetTileSize()));
+				GridWorldController->TileRotate(Tile);
 			}
 		}
 	}
@@ -320,6 +311,7 @@ void ATopDownController::StartDrag()
 {
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Camera, false, Hit);
+	AGridWorldController* GridWorldController = GetWorldController();
 
 	if (Hit.bBlockingHit)
 	{
@@ -330,7 +322,7 @@ void ATopDownController::StartDrag()
 		case EGwSelectionMode::Building:
 			//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
-				DragStartPosition = Hit.Location.GridSnap(GetTileSize());
+				DragStartPosition = Hit.Location.GridSnap(GridWorldController->GetTileSize());
 				Acted = true;
 			}
 			break;
@@ -356,6 +348,7 @@ void ATopDownController::WhileDragging()
 {
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Camera, false, Hit);
+	AGridWorldController* GridWorldController = GetWorldController();
 
 	if (Hit.bBlockingHit)
 	{
@@ -364,7 +357,7 @@ void ATopDownController::WhileDragging()
 		case EGwSelectionMode::Building:
 			//if (Hit.Actor->IsA(AGridWorldController::StaticClass()))
 			{
-				DragEndPosition = Hit.Location.GridSnap(GetTileSize());
+				DragEndPosition = Hit.Location.GridSnap(GridWorldController->GetTileSize());
 			}
 			break;
 		case EGwSelectionMode::Unit: 
@@ -403,23 +396,23 @@ void ATopDownController::WhileDragging()
 		if (CurrentMode != EGwSelectionMode::Unit)
 		{
 			TArray<UTile* > SelectedTiles;
-			for (int X = StartX; X <= EndX; X+=GetTileSize())
+			for (int X = StartX; X <= EndX; X+=GridWorldController->GetTileSize())
 			{
-				for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
+				for (int Y = StartY; Y <= EndY; Y+=GridWorldController->GetTileSize())
 				{
-					FVector Vector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z);
-					const FVector Pos = (Vector - GetWorldController()->GetActorLocation()) /
-						GetWorldController()->GetGridWorld()->TileSize();
+					FVector Vector(X, Y, DragStartPosition.GridSnap(GridWorldController->GetTileThickness()).Z);
+					const FVector Pos = (Vector - GridWorldController->GetActorLocation()) /
+						GridWorldController->GetGridWorld()->TileSize();
 					if (CurrentMode == EGwSelectionMode::Installing)
 					{
 						if(X == StartX || X == EndX || Y == StartY || Y == EndY)
 						{
-							SelectedTiles.Add(GetWorldController()->GetGridWorld()->GetTileAt(Pos));
+							SelectedTiles.Add(GridWorldController->GetGridWorld()->GetTileAt(Pos));
 						}
 					}
 					else
 					{
-						SelectedTiles.Add(GetWorldController()->GetGridWorld()->GetTileAt(Pos));
+						SelectedTiles.Add(GridWorldController->GetGridWorld()->GetTileAt(Pos));
 					}
 				}
 			}
@@ -479,15 +472,17 @@ bool ATopDownController::EndDrag()
 		EndY = StartY;
 		StartY = Tmp;
 	}
+	AGridWorldController* GridWorldController = GetWorldController();
+
 	switch (CurrentMode)
 	{
 	case EGwSelectionMode::Building:
 		{
-			for (int X = StartX; X <= EndX; X+=GetTileSize())
+			for (int X = StartX; X <= EndX; X+=GridWorldController->GetTileSize())
 			{
-				for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
+				for (int Y = StartY; Y <= EndY; Y+=GridWorldController->GetTileSize())
 				{
-					SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z));
+					SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(GridWorldController->GetTileThickness()).Z));
 				}
 			}
 	
@@ -495,13 +490,13 @@ bool ATopDownController::EndDrag()
 		}
 	case EGwSelectionMode::Installing:
 		{
-			for (int X = StartX; X <= EndX; X+=GetTileSize())
+			for (int X = StartX; X <= EndX; X+=GridWorldController->GetTileSize())
 			{
-				for (int Y = StartY; Y <= EndY; Y+=GetTileSize())
+				for (int Y = StartY; Y <= EndY; Y+=GridWorldController->GetTileSize())
 				{
 					if (X == StartX || X == EndX || Y == StartY || Y == EndY)
 					{
-						SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(GetTileThickness()).Z));
+						SelectedTilesLocations.Add(FVector(X, Y, DragStartPosition.GridSnap(GridWorldController->GetTileThickness()).Z));
 					}
 				}
 			}

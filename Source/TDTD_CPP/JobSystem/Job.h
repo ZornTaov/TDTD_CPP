@@ -37,6 +37,7 @@ public:
 	void RegisterDone(UserClass* InUserObject, typename TMemFunPtrType<false, UserClass, void(UJob*)>::Type InFunc);
 	UFUNCTION(BlueprintCallable)
 	bool DoWork(float WorkTime);
+	UFUNCTION(BlueprintCallable)
 	void CancelJob();
 	
 	template<typename UserClass>

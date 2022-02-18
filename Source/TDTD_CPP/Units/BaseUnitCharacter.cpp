@@ -14,6 +14,7 @@
 #include "Materials/Material.h"
 #include "Kismet/GameplayStatics.h"
 #include "GridWorld/GridWorldController.h"
+#include "GridWorld/GridWorldSubsystem.h"
 #include "GridWorld/Tile.h"
 #include "JobSystem/Job.h"
 
@@ -29,7 +30,7 @@ ABaseUnitCharacter::ABaseUnitCharacter()
 	bUseControllerRotationRoll = false;
 	
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
+	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Rotate character to moving direction
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	//GetCharacterMovement()->bConstrainToPlane = true;
 	//GetCharacterMovement()->bSnapToPlaneAtStart = true;
@@ -58,7 +59,9 @@ ABaseUnitCharacter::ABaseUnitCharacter()
 void ABaseUnitCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	//CurrTile = DestTile = GridWorldController->GetGridWorld()->GetTileAtWorldPos(this->GetActorLocation());
+	UGridWorldSubsystem* GridWorldSubsystem = GetWorld()->GetSubsystem<UGridWorldSubsystem>();
+	GridWorldController = GridWorldSubsystem->GetGridWorldController();
+	DestTile = GridWorldSubsystem->GetGridWorld()->GetTileAtWorldPos(this->GetActorLocation());
 	if (BTree)
 	{
 		AAIController* AiController = GetController<AAIController>();
@@ -68,20 +71,63 @@ void ABaseUnitCharacter::BeginPlay()
 	}
 }
 
+void ABaseUnitCharacter::GetNewJob()
+{
+	if (!IsValid(MyJob))
+	{
+		MyJob = GridWorldController->GetJobSystem()->Dequeue();
+		if (!IsValid(MyJob))
+			return;
+		
+		DestTile = MyJob->GetTile();
+		MyJob->OnJobComplete.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
+		MyJob->OnJobCancel.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
+		AIBlackboard->SetValueAsVector(FName("TargetDestination"), DestTile->GetWorldPos());
+		AIBlackboard->SetValueAsObject(FName("CurrentJob"), MyJob);
+	}
+}
+
+bool ABaseUnitCharacter::DoWork(const float DeltaTime)
+{
+	if (IsValid(MyJob))
+	{
+		return MyJob->DoWork(DeltaTime);
+	}
+	return false;
+}
+
+UTile* ABaseUnitCharacter::GetCurrentTile() const
+{
+	return GridWorldController->GetTileAtWorldPos(GetActorLocation());
+}
+
 // Called every frame
 void ABaseUnitCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (!MyJob)
+	JobSearchCooldown -= DeltaTime;
+	if (!IsValid(MyJob))
 	{
-		MyJob = GridWorldController->GetJobSystem()->GetJob();
-		if (MyJob)
-		{
-			CurrTile = MyJob->GetTile();
-			MyJob->OnJobComplete.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
-			MyJob->OnJobCancel.AddUObject(this, &ABaseUnitCharacter::OnJobEnded);
-			AIBlackboard->SetValueAsVector(FName("TargetDestination"), CurrTile->GetWorldPos());
+		
+		if(JobSearchCooldown > 0) {
+			// Don't look for job now.
+			if(GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Yellow,
+					FString::Printf(TEXT("Awaiting Job")));
+	
+			return;
+		}
+		GetNewJob();
+		if(!IsValid(MyJob)) {
+			// There was no job on the queue for us, so just return.
+			const FRandomStream Rand;
+			JobSearchCooldown = Rand.FRandRange(0.1f, 0.5f);
+			if(GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Yellow,
+					FString::Printf(TEXT("No Jobs, wating %f"), JobSearchCooldown));
+			
+			DestTile = GetCurrentTile();
+			return;
 		}
 	}
 }
@@ -102,5 +148,16 @@ void ABaseUnitCharacter::OnJobEnded(UJob* Job)
 	}
 	
 	MyJob = nullptr;
+	AIBlackboard->SetValueAsObject(FName("CurrentJob"), nullptr);
 }
 
+void ABaseUnitCharacter::AbandonJob() {
+	if(GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red,
+			FString::Printf(TEXT("ABANDONING JOB: %s:%s worktime: %f"), *MyJob->JobName.ToString(), *MyJob->GetTile()->GetIndexPos().ToString(), MyJob->JobTime));
+	
+	DestTile = GetCurrentTile();
+	GridWorldController->GetJobSystem()->Enqueue(MyJob);
+	MyJob = nullptr;
+	AIBlackboard->SetValueAsObject(FName("CurrentJob"), nullptr);
+}

@@ -43,12 +43,13 @@ protected:
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UTile* CurrTile;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UTile* DestTile;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UJob* MyJob = nullptr;
+
+	float JobSearchCooldown;
+
 	UPROPERTY()
 	AGridWorldController* GridWorldController;
 #pragma endregion BaseUnit Fields
@@ -60,6 +61,12 @@ public:
 	//UFUNCTION(BlueprintCallable)
 	//void SetDestination(UTile* InTile);
 	void OnJobEnded(UJob* Job);
-	
+	UFUNCTION(BlueprintCallable)
+	void AbandonJob();
+	void GetNewJob();
+	UFUNCTION(BlueprintCallable)
+	bool DoWork(float DeltaTime);
+	UTile* GetCurrentTile() const;
+
 #pragma endregion BaseUnit Methods
 };
